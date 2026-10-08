@@ -1,5 +1,4 @@
-CREATE DATABASE IF NOT EXISTS QrProfileDB;
-USE QrProfileDB;
+USE defaultdb;
 
 CREATE TABLE IF NOT EXISTS Languages (
     Code VARCHAR(5) PRIMARY KEY,
@@ -13,8 +12,9 @@ CREATE TABLE IF NOT EXISTS Profiles (
     CoreValues VARCHAR(200) NOT NULL,
     WhatsApp VARCHAR(50) NOT NULL,
     Services TEXT NOT NULL,
-    FOREIGN KEY (LanguageCode) REFERENCES Languages(Code)
+    FOREIGN KEY (LanguageCode) REFERENCES Languages (Code)
 );
+
 CREATE TABLE IF NOT EXISTS Usuarios (
     Id INT AUTO_INCREMENT PRIMARY KEY,
     GoogleId VARCHAR(255) NULL UNIQUE,
@@ -23,13 +23,6 @@ CREATE TABLE IF NOT EXISTS Usuarios (
     FotoUrl VARCHAR(2048) NULL,
     FechaCreacion DATETIME DEFAULT CURRENT_TIMESTAMP
 );
-
-ALTER TABLE Usuarios
-    MODIFY GoogleId VARCHAR(255) NULL,
-    MODIFY Nombre VARCHAR(255) NOT NULL,
-    MODIFY Email VARCHAR(255) NOT NULL,
-    MODIFY FotoUrl VARCHAR(2048) NULL,
-    MODIFY FechaCreacion DATETIME DEFAULT CURRENT_TIMESTAMP;
 
 CREATE TABLE IF NOT EXISTS Taxistas (
     Id INT AUTO_INCREMENT PRIMARY KEY,
@@ -43,32 +36,46 @@ CREATE TABLE IF NOT EXISTS Taxistas (
     DatosPago VARCHAR(250) NOT NULL DEFAULT '',
     Servicios TEXT NOT NULL,
     FechaCreacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT FK_Taxistas_Usuarios FOREIGN KEY (UsuarioId) REFERENCES Usuarios(Id) ON DELETE CASCADE
+    CONSTRAINT FK_Taxistas_Usuarios FOREIGN KEY (UsuarioId) REFERENCES Usuarios (Id) ON DELETE CASCADE
 );
 
-ALTER TABLE Taxistas
-    ADD COLUMN IF NOT EXISTS NombreCompleto VARCHAR(120) NOT NULL DEFAULT '',
-    ADD COLUMN IF NOT EXISTS FotoUrl VARCHAR(2048) NULL,
-    ADD COLUMN IF NOT EXISTS Vehiculo VARCHAR(120) NOT NULL DEFAULT '',
-    ADD COLUMN IF NOT EXISTS Patente VARCHAR(30) NOT NULL DEFAULT '',
-    ADD COLUMN IF NOT EXISTS DatosPago VARCHAR(250) NOT NULL DEFAULT '';
+INSERT IGNORE INTO
+    Languages (Code, Name)
+VALUES ('es', 'Español'),
+    ('en', 'English'),
+    ('pt', 'Português');
 
-UPDATE Taxistas t
-INNER JOIN Usuarios u ON u.Id = t.UsuarioId
-SET t.NombreCompleto = CASE WHEN t.NombreCompleto = '' THEN u.Nombre ELSE t.NombreCompleto END,
-    t.FotoUrl = COALESCE(NULLIF(t.FotoUrl, ''), u.FotoUrl);
-
-INSERT IGNORE INTO Languages (Code, Name) VALUES 
-('es', 'Español'), 
-('en', 'English'), 
-('pt', 'Português');
-
-INSERT INTO Profiles (LanguageCode, BusinessName, CoreValues, WhatsApp, Services)
+INSERT INTO
+    Profiles (
+        LanguageCode,
+        BusinessName,
+        CoreValues,
+        WhatsApp,
+        Services
+    )
 SELECT 'es', 'Taxi Alexis', 'Puntualidad, Seguridad y Confort en cada viaje', '1162383883', 'Viajes particulares, Aeropuertos, Traslados laborales, Viajes programados, Servicio para empresas, Servicios de Tour'
-WHERE NOT EXISTS (SELECT 1 FROM Profiles WHERE LanguageCode = 'es')
+WHERE
+    NOT EXISTS (
+        SELECT 1
+        FROM Profiles
+        WHERE
+            LanguageCode = 'es'
+    )
 UNION ALL
 SELECT 'en', 'Taxi Alexis', 'Punctuality, Safety, and Comfort on every ride', '1162383883', 'Private trips, Airports, Work transfers, Scheduled rides, Corporate service, Tour services'
-WHERE NOT EXISTS (SELECT 1 FROM Profiles WHERE LanguageCode = 'en')
+WHERE
+    NOT EXISTS (
+        SELECT 1
+        FROM Profiles
+        WHERE
+            LanguageCode = 'en'
+    )
 UNION ALL
 SELECT 'pt', 'Taxi Alexis', 'Pontualidade, Segurança e Conforto em cada viagem', '1162383883', 'Viagens particulares, Aeroportos, Traslados de trabalho, Viagens agendadas, Serviço para empresas, Serviços de tour'
-WHERE NOT EXISTS (SELECT 1 FROM Profiles WHERE LanguageCode = 'pt');
+WHERE
+    NOT EXISTS (
+        SELECT 1
+        FROM Profiles
+        WHERE
+            LanguageCode = 'pt'
+    );

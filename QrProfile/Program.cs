@@ -124,5 +124,5 @@ app.MapGet("/api/profile/{lang}", async (string lang, IProfileService profileSer
 });
 
 app.MapControllers();
-
+    
 app.Run();
