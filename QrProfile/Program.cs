@@ -1,22 +1,120 @@
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using QrProfile.Models;
 using QrProfile.Repositories;
 using QrProfile.Services;
+using MySql.Data.MySqlClient;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.Authentication.OAuth.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
+var googleAuth = builder.Configuration.GetSection("Authentication:Google");
+var googleClientId = googleAuth.GetValue<string>("ClientId");
+var googleClientSecret = googleAuth.GetValue<string>("ClientSecret");
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-// Registrar el repositorio y el servicio en el contenedor de DI
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    throw new InvalidOperationException(
+        "Falta ConnectionStrings:DefaultConnection. Configurala en appsettings, User Secrets o mediante ConnectionStrings__DefaultConnection.");
+}
+
+try
+{
+    var connectionSettings = new MySqlConnectionStringBuilder(connectionString);
+    if (string.IsNullOrWhiteSpace(connectionSettings.Server) || string.IsNullOrWhiteSpace(connectionSettings.Database))
+    {
+        throw new InvalidOperationException("La cadena MariaDB debe incluir Server y Database.");
+    }
+}
+catch (Exception exception) when (exception is ArgumentException or FormatException or MySqlException)
+{
+    throw new InvalidOperationException(
+        "ConnectionStrings:DefaultConnection no tiene un formato válido para MariaDB/MySQL.",
+        exception);
+}
+
+if (string.IsNullOrWhiteSpace(googleClientId) || string.IsNullOrWhiteSpace(googleClientSecret))
+{
+    if (builder.Environment.IsDevelopment())
+    {
+        Console.Error.WriteLine("Faltan credenciales de Google OAuth. En Development, configurá User Secrets para este proyecto:");
+        Console.Error.WriteLine("  dotnet user-secrets set \"Authentication:Google:ClientId\" \"TU_CLIENT_ID\" --project QrProfile/QrProfile.csproj");
+        Console.Error.WriteLine("  dotnet user-secrets set \"Authentication:Google:ClientSecret\" \"TU_CLIENT_SECRET\" --project QrProfile/QrProfile.csproj");
+        Console.Error.WriteLine("WebApplication.CreateBuilder carga User Secrets automáticamente en Development cuando el proyecto tiene UserSecretsId.");
+    }
+
+    throw new InvalidOperationException(
+        "Configure Authentication:Google:ClientId y Authentication:Google:ClientSecret mediante appsettings, User Secrets o las variables Authentication__Google__ClientId y Authentication__Google__ClientSecret antes de iniciar la API.");
+}
+
+var trustForwardedHeaders = builder.Configuration.GetValue<bool>("ForwardedHeaders:TrustProxyHeaders");
+if (trustForwardedHeaders)
+{
+    builder.Services.Configure<ForwardedHeadersOptions>(options =>
+    {
+        options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+        options.ForwardLimit = 1;
+        options.KnownIPNetworks.Clear();
+        options.KnownProxies.Clear();
+    });
+}
+
 builder.Services.AddScoped<IProfileRepository, ProfileRepository>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+builder.Services.AddScoped<ITaxistaRepository, TaxistaRepository>();
+
+builder.Services.AddControllers();
+builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
+    })
+    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+    {
+        options.Cookie.Name = ".QrProfile.Auth";
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SameSite = SameSiteMode.Lax;
+        options.Cookie.SecurePolicy = builder.Environment.IsDevelopment()
+            ? CookieSecurePolicy.SameAsRequest
+            : CookieSecurePolicy.Always;
+    })
+    .AddGoogle(GoogleDefaults.AuthenticationScheme, options =>
+    {
+        options.ClientId = googleClientId;
+        options.ClientSecret = googleClientSecret;
+        options.CallbackPath = "/signin-google";
+        options.Scope.Add("email");
+        options.Scope.Add("profile");
+        options.ClaimActions.Add(new JsonKeyClaimAction(
+            "picture",
+            System.Security.Claims.ClaimValueTypes.String,
+            "picture"));
+    });
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-app.UseDefaultFiles();
+if (trustForwardedHeaders)
+{
+    app.UseForwardedHeaders();
+}
+
 app.UseStaticFiles();
+app.UseAuthentication();
+app.UseAuthorization();
+
+var publicPagePath = Path.Combine(app.Environment.WebRootPath!, "index.html");
+var homePagePath = Path.Combine(app.Environment.ContentRootPath, "Views", "inicio.html");
+var adminPagePath = Path.Combine(app.Environment.ContentRootPath, "Views", "administracion.html");
+
+app.MapGet("/", () => Results.File(homePagePath, "text/html"));
+app.MapGet("/perfil/{taxistaId:int}", () => Results.File(publicPagePath, "text/html"));
+app.MapGet("/admin", () => Results.File(adminPagePath, "text/html"))
+    .RequireAuthorization();
+app.MapGet("/panel", () => Results.File(adminPagePath, "text/html"))
+    .RequireAuthorization();
 
 // Endpoint de la API
 app.MapGet("/api/profile/{lang}", async (string lang, IProfileService profileService) =>
@@ -25,52 +123,6 @@ app.MapGet("/api/profile/{lang}", async (string lang, IProfileService profileSer
     return profile is not null ? Results.Ok(profile) : Results.NotFound("Profile not found for this language.");
 });
 
-// Auth Endpoints
-app.MapPost("/api/auth/register", async (UserRegisterDto dto, IUserRepository userRepository) =>
-{
-    var existingUser = await userRepository.GetUserByEmailAsync(dto.Email);
-    if (existingUser != null)
-    {
-        return Results.BadRequest("El usuario ya existe.");
-    }
-
-    var user = new User
-    {
-        Email = dto.Email,
-        PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-        Slug = dto.Slug
-    };
-
-    var result = await userRepository.CreateUserAsync(user);
-    return result ? Results.Ok() : Results.BadRequest("Error al crear el usuario.");
-});
-
-app.MapPost("/api/auth/login", async (UserLoginDto dto, IUserRepository userRepository, IConfiguration config) =>
-{
-    var user = await userRepository.GetUserByEmailAsync(dto.Email);
-    if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
-    {
-        return Results.BadRequest("Credenciales inválidas.");
-    }
-
-    var tokenHandler = new JwtSecurityTokenHandler();
-    // Use a default key if not provided in appsettings.json to avoid runtime crashes during this demo
-    var keyString = config["JwtSettings:Secret"] ?? "ClaveSuperSecretaParaDesarrolloLocal_ReemplazarEnProd!";
-    var key = Encoding.ASCII.GetBytes(keyString);
-    
-    var tokenDescriptor = new SecurityTokenDescriptor
-    {
-        Subject = new ClaimsIdentity(new[]
-        {
-            new Claim(ClaimTypes.Email, user.Email),
-            new Claim("Slug", user.Slug)
-        }),
-        Expires = DateTime.UtcNow.AddDays(7),
-        SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-    };
-
-    var token = tokenHandler.CreateToken(tokenDescriptor);
-    return Results.Ok(new { token = tokenHandler.WriteToken(token) });
-});
+app.MapControllers();
 
 app.Run();

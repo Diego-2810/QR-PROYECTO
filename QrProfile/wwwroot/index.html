@@ -1,299 +1,136 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Taxi Alexis - Servicio Ejecutivo de Traslados</title>
-    <!-- Google Fonts -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f4f1e8">
+    <title>Taxi Ya | Tarjeta digital del taxista</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <style>
-        :root {
-            --bg-gradient: linear-gradient(135deg, #0b1329 0%, #1e293b 50%, #0f172a 100%);
-            --card-bg: rgba(255, 255, 255, 0.06);
-            --card-border: rgba(255, 255, 255, 0.12);
-            --accent-yellow: #f59e0b;
-            --accent-green: #25d366;
-            --accent-green-hover: #1da851;
-            --text-primary: #f8fafc;
-            --text-secondary: #94a3b8;
-        }
-
-        body {
-            font-family: 'Outfit', sans-serif;
-            background: var(--bg-gradient);
-            min-height: 100vh;
-            color: var(--text-primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 1.5rem 0;
-            margin: 0;
-        }
-
-        .glass-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid var(--card-border);
-            border-radius: 24px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-            overflow: hidden;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .glass-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 25px 50px rgba(245, 158, 11, 0.15);
-        }
-
-        .brand-icon {
-            width: 90px;
-            height: 90px;
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.75rem;
-            color: #0f172a;
-            margin: 0 auto;
-            box-shadow: 0 10px 25px rgba(245, 158, 11, 0.4);
-        }
-
-        .btn-lang {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: var(--text-secondary);
-            border-radius: 12px;
-            padding: 6px 16px;
-            font-weight: 600;
-            font-size: 0.875rem;
-            transition: all 0.2s ease;
-        }
-
-        .btn-lang.active, .btn-lang:hover {
-            background: var(--accent-yellow);
-            border-color: var(--accent-yellow);
-            color: #0f172a;
-            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
-        }
-
-        .subtitle-badge {
-            background: rgba(245, 158, 11, 0.15);
-            color: #fcd34d;
-            border: 1px solid rgba(245, 158, 11, 0.3);
-            border-radius: 16px;
-            padding: 8px 18px;
-            font-size: 0.95rem;
-            font-weight: 500;
-            display: inline-block;
-        }
-
-        .list-group-custom .list-group-item {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            color: #e2e8f0;
-            border-radius: 12px !important;
-            margin-bottom: 8px;
-            padding: 12px 18px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-weight: 500;
-            transition: background 0.2s ease;
-        }
-
-        .list-group-custom .list-group-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .service-icon {
-            color: var(--accent-yellow);
-            font-size: 1.1rem;
-        }
-
-        .whatsapp-btn {
-            background: var(--accent-green);
-            border: none;
-            color: white;
-            border-radius: 16px;
-            padding: 16px 28px;
-            font-weight: 700;
-            font-size: 1.1rem;
-            transition: all 0.2s ease;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            width: 100%;
-            box-shadow: 0 10px 25px rgba(37, 211, 102, 0.3);
-        }
-
-        .whatsapp-btn:hover {
-            background: var(--accent-green-hover);
-            color: white;
-            box-shadow: 0 14px 30px rgba(37, 211, 102, 0.45);
-            transform: translateY(-2px);
-        }
-
-        .spinner-container {
-            min-height: 280px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
+        :root { color-scheme: light; --paper:#f4f1e8; --surface:#fffdf8; --ink:#202522; --muted:#737a72; --line:#e4e0d5; --lime:#c7e56b; --green:#245c45; --red:#a83327; font-family:'DM Sans',sans-serif; }
+        * { box-sizing:border-box; }
+        body { margin:0; min-height:100vh; color:var(--ink); background:var(--paper); }
+        button,input,textarea { font:inherit; }
+        .topline { height:9px; background:var(--lime); }
+        .shell { width:min(1040px,calc(100% - 36px)); margin:0 auto; }
+        header { display:flex; align-items:center; justify-content:space-between; padding:26px 0; border-bottom:1px solid var(--line); }
+        .wordmark { display:flex; align-items:center; gap:11px; color:var(--ink); text-decoration:none; font-family:Manrope,sans-serif; font-weight:800; }
+        .wordmark-mark { display:grid; width:38px; height:38px; place-items:center; border-radius:12px; background:var(--ink); color:var(--lime); font-size:19px; }
+        .eyebrow { margin:0; color:var(--muted); font-size:.76rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+        .header-link { color:var(--ink); font-weight:700; text-decoration:none; }
+        main { display:grid; grid-template-columns:minmax(0,1fr) minmax(280px,370px); gap:70px; align-items:start; padding:58px 0 72px; }
+        .profile { padding-top:20px; animation:rise .45s ease-out both; }
+        .profile-head { display:flex; align-items:center; gap:21px; margin-bottom:25px; }
+        .profile-photo { display:grid; width:128px; height:128px; flex:0 0 128px; place-items:center; overflow:hidden; border:4px solid var(--surface); border-radius:50%; background:#dce8c8; box-shadow:0 4px 20px #20252216; color:var(--green); font-size:2.5rem; }
+        .profile-photo img { width:100%; height:100%; object-fit:cover; }
+        .profile-head h1 { margin:8px 0; font-size:clamp(2.1rem,5vw,3.2rem); }
+        .profile-phone { margin:0; color:var(--muted); font-size:1rem; }
+        .vehicle { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 25px; }
+        .vehicle span { display:inline-flex; align-items:center; gap:7px; padding:8px 11px; border:1px solid var(--line); border-radius:5px; background:var(--surface); font-size:.9rem; font-weight:600; }
+        .payment-panel { margin-top:24px; padding-top:21px; border-top:1px solid var(--line); }
+        .payment-value { margin:10px 0 13px; color:#465149; white-space:pre-wrap; overflow-wrap:anywhere; }
+        .profile-actions { display:flex; flex-wrap:wrap; gap:10px; }
+        .profile-status { min-height:20px; margin:10px 0 0!important; color:var(--green)!important; font-size:.85rem; }
+        .profile-kicker { display:flex; align-items:center; gap:10px; color:var(--green); font-size:.83rem; font-weight:700; }
+        .status-dot { width:9px; height:9px; border-radius:50%; background:#56a96d; box-shadow:0 0 0 4px #56a96d22; }
+        h1 { max-width:650px; margin:19px 0 16px; font:800 clamp(2.8rem,7vw,5.6rem)/.98 Manrope,sans-serif; letter-spacing:0; overflow-wrap:anywhere; }
+        .lead { max-width:570px; margin:0; color:#555e56; font-size:1.12rem; line-height:1.65; }
+        .services { margin:39px 0 32px; padding:23px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
+        .section-label { margin:0 0 17px; color:var(--muted); font-size:.76rem; font-weight:700; letter-spacing:.09em; text-transform:uppercase; }
+        .service-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:13px 26px; margin:0; padding:0; list-style:none; }
+        .service-list li { display:flex; align-items:flex-start; gap:10px; font-weight:600; line-height:1.4; }
+        .service-list i { color:var(--green); font-size:1rem; }
+        .button { display:inline-flex; min-height:52px; align-items:center; justify-content:center; gap:10px; padding:0 21px; border:0; border-radius:7px; font-weight:700; text-decoration:none; cursor:pointer; transition:transform .16s ease,background .16s ease; }
+        .button:hover { transform:translateY(-2px); }
+        .button-primary { background:var(--green); color:white; }
+        .button-primary:hover { background:#194b36; }
+        .button-secondary { background:transparent; border:1px solid #9ba197; color:var(--ink); }
+        .contact-panel { margin-top:38px; padding:21px 22px; background:#e9e6dc; border-radius:7px; }
+        .contact-panel p { margin:0; color:#555e56; }
+        .side { position:static; animation:rise .55s .08s ease-out both; }
+        .state { grid-column:1/-1; padding:64px 12px; color:var(--muted); text-align:center; }
+        .state i { display:block; margin-bottom:12px; color:var(--green); font-size:2rem; }
+        .side .contact-panel { margin-top:20px; }
+        .side .contact-panel .button { width:100%; margin-top:10px; }
+        .payment-panel .button { min-height:44px; padding:0 15px; }
+        footer { padding:19px 0 26px; border-top:1px solid var(--line); color:var(--muted); font-size:.85rem; }
+        @keyframes rise { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+        @media(max-width:760px) { .shell { width:min(100% - 28px,580px); } header { padding:18px 0; } main { grid-template-columns:1fr; gap:24px; padding:28px 0 43px; } .profile { padding-top:8px; } h1 { font-size:clamp(2.7rem,14vw,4rem); } .profile-head h1 { font-size:clamp(2rem,10vw,3rem); } .profile-photo { width:104px; height:104px; flex-basis:104px; } .service-list { grid-template-columns:1fr; } .profile-actions { display:grid; grid-template-columns:1fr; } }
+        @media(prefers-reduced-motion:reduce) { *,*::before,*::after { animation-duration:.01ms!important; transition-duration:.01ms!important; } }
     </style>
 </head>
 <body>
-
-    <div class="container px-3">
-        <div class="row justify-content-center">
-            <div class="col-12 col-sm-10 col-md-8 col-lg-5">
-                
-                <div class="glass-card p-4 p-md-5">
-                    
-                    <!-- Selector de Idiomas -->
-                    <div class="d-flex justify-content-end gap-2 mb-4">
-                        <button class="btn btn-lang active" onclick="loadProfile('es')" id="btn-es">ES</button>
-                        <button class="btn btn-lang" onclick="loadProfile('en')" id="btn-en">EN</button>
-                        <button class="btn btn-lang" onclick="loadProfile('pt')" id="btn-pt">PT</button>
-                    </div>
-
-                    <!-- Contenedor dinámico del Perfil de Taxi Alexis -->
-                    <div id="profile-content">
-                        <div class="spinner-container text-center">
-                            <div class="spinner-border" role="status" style="color: var(--accent-yellow);">
-                                <span class="visually-hidden">Cargando...</span>
-                            </div>
-                            <p class="mt-3 text-secondary" id="loading-text">Cargando servicios...</p>
-                        </div>
-                    </div>
-
-                </div>
-
-                <div class="text-center mt-4 text-secondary small">
-                    <p class="mb-0">Taxi Alexis &copy; 2026 | Servicio de Traslados</p>
-                </div>
-
-            </div>
-        </div>
+    <div class="topline"></div>
+    <div class="shell">
+        <header>
+            <a class="wordmark" href="/" aria-label="Taxi Ya, inicio"><span class="wordmark-mark"><i class="bi bi-taxi-front-fill"></i></span><span>Taxi Ya</span></a>
+            <a class="header-link" href="/api/auth/login-google">Acceso Taxistas <i class="bi bi-arrow-up-right"></i></a>
+        </header>
+        <main id="perfil" aria-live="polite"><div class="state"><i class="bi bi-arrow-repeat"></i>Cargando tarjeta...</div></main>
+        <footer>Taxi Ya · Tarjeta digital para taxistas <span id="year"></span></footer>
     </div>
-
-    <!-- Bootstrap 5 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
     <script>
-        const btnTexts = {
-            es: "Reservar por WhatsApp",
-            en: "Book via WhatsApp",
-            pt: "Reservar pelo WhatsApp"
-        };
-
-        const errorTexts = {
-            es: "No se pudieron cargar los servicios de Taxi Alexis.",
-            en: "Could not load Taxi Alexis services.",
-            pt: "Não foi possível carregar os serviços do Taxi Alexis."
-        };
-
-        async function loadProfile(lang) {
-            // Activar botón de idioma seleccionado
-            document.getElementById('btn-es').classList.toggle('active', lang === 'es');
-            document.getElementById('btn-en').classList.toggle('active', lang === 'en');
-            document.getElementById('btn-pt').classList.toggle('active', lang === 'pt');
-
-            const container = document.getElementById('profile-content');
-            container.innerHTML = `
-                <div class="spinner-container text-center">
-                    <div class="spinner-border" role="status" style="color: var(--accent-yellow);">
-                        <span class="visually-hidden">Cargando...</span>
-                    </div>
-                </div>
-            `;
-
+        const perfilNode = document.getElementById('perfil');
+        document.getElementById('year').textContent = new Date().getFullYear();
+        function escapeHtml(value) { return String(value ?? '').replace(/[&<>"']/g, char => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[char]); }
+        function safeWebUrl(value) {
             try {
-                const response = await fetch(`/api/profile/${lang}`);
-                if (!response.ok) {
-                    throw new Error(`Error HTTP: ${response.status}`);
+                const url = new URL(value);
+                return ['http:', 'https:'].includes(url.protocol) ? url.href : '';
+            } catch { return ''; }
+        }
+        function escapeVCard(value) { return String(value ?? '').replace(/\\/g, '\\\\').replace(/\n/g, '\\n').replace(/[,;]/g, '\\$&'); }
+        function render(profile) {
+            const name = profile.nombreCompleto || 'Taxista';
+            const phone = profile.telefono || '';
+            const phoneDigits = phone.replace(/\D/g, '');
+            const photoUrl = safeWebUrl(profile.fotoUrl || '');
+            const services = (profile.servicios || '').split(/[,;\n]/).map(item => item.trim()).filter(Boolean);
+            const serviceItems = services.map(service => `<li><i class="bi bi-check-circle-fill"></i><span>${escapeHtml(service)}</span></li>`).join('');
+            const payment = (profile.datosPago || '').trim();
+            const paymentUrl = safeWebUrl(payment);
+            const initials = name.trim().split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase();
+            perfilNode.innerHTML = `
+                <section class="profile" aria-labelledby="profile-name">
+                    <div class="profile-head"><div class="profile-photo">${photoUrl ? `<img src="${escapeHtml(photoUrl)}" alt="Foto de ${escapeHtml(name)}">` : `<span aria-label="Iniciales">${escapeHtml(initials)}</span>`}</div>
+                        <div><p class="profile-kicker"><span class="status-dot"></span> Tarjeta digital</p><h1 id="profile-name">${escapeHtml(name)}</h1>${phone ? `<p class="profile-phone">${escapeHtml(phone)}</p>` : ''}</div>
+                    </div>
+                    ${profile.vehiculo || profile.patente ? `<div class="vehicle">${profile.vehiculo ? `<span><i class="bi bi-car-front"></i>${escapeHtml(profile.vehiculo)}</span>` : ''}${profile.patente ? `<span><i class="bi bi-card-text"></i>${escapeHtml(profile.patente)}</span>` : ''}</div>` : ''}
+                    <div class="services"><p class="section-label">Servicios</p>${serviceItems ? `<ul class="service-list">${serviceItems}</ul>` : '<p class="lead">Consultá directamente con el taxista.</p>'}</div>
+                </section>
+                <aside class="side" aria-label="Contacto y medios de pago">
+                    <section class="contact-panel"><p class="section-label">Contacto directo</p>${phoneDigits ? `<div class="profile-actions"><a class="button button-primary" href="https://wa.me/${phoneDigits}" target="_blank" rel="noopener"><i class="bi bi-whatsapp"></i>WhatsApp</a><a class="button button-secondary" href="tel:${escapeHtml(phone.replace(/[^\d+]/g, ''))}"><i class="bi bi-telephone"></i>Llamar</a><button class="button button-secondary" id="save-contact" type="button"><i class="bi bi-person-plus"></i>Guardar contacto</button></div>` : '<p>El taxista todavía no publicó un teléfono.</p>'}<p id="contact-status" class="profile-status" role="status"></p></section>
+                    ${payment ? `<section class="payment-panel"><p class="section-label">Pago y transferencia</p>${paymentUrl ? `<a class="button button-primary" href="${escapeHtml(paymentUrl)}" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right"></i>Abrir enlace de pago</a>` : `<p class="payment-value" id="payment-value">${escapeHtml(payment)}</p><button class="button button-secondary" id="copy-payment" type="button"><i class="bi bi-copy"></i>Copiar datos</button>`}<p id="payment-status" class="profile-status" role="status"></p></section>` : ''}
+                </aside>`;
+            document.getElementById('save-contact')?.addEventListener('click', () => {
+                const vcard = ['BEGIN:VCARD', 'VERSION:3.0', `FN:${escapeVCard(name)}`, `TEL;TYPE=CELL:${escapeVCard(phone)}`, 'END:VCARD'].join('\r\n');
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(new Blob([vcard], { type:'text/vcard;charset=utf-8' }));
+                link.download = `${name.trim().replace(/[^\p{L}\p{N}-]+/gu, '-') || 'taxista'}.vcf`;
+                link.click();
+                URL.revokeObjectURL(link.href);
+                document.getElementById('contact-status').textContent = 'Contacto descargado.';
+            });
+            document.getElementById('copy-payment')?.addEventListener('click', async () => {
+                try {
+                    await navigator.clipboard.writeText(payment);
+                    document.getElementById('payment-status').textContent = 'Datos copiados.';
+                } catch {
+                    document.getElementById('payment-status').textContent = 'No se pudo copiar en este navegador.';
                 }
-                const profile = await response.json();
-
-                // Separar la lista de servicios por coma (,)
-                const servicesList = profile.services
-                    ? profile.services.split(',').map(s => s.trim()).filter(s => s.length > 0)
-                    : [];
-
-                const servicesHtml = servicesList.map(service => `
-                    <li class="list-group-item">
-                        <i class="bi bi-check-circle-fill service-icon"></i>
-                        <span>${escapeHtml(service)}</span>
-                    </li>
-                `).join('');
-
-                const cleanWhatsApp = profile.whatsApp ? profile.whatsApp.replace(/[^0-9]/g, '') : '';
-                const whatsappUrl = `https://wa.me/${cleanWhatsApp}`;
-                const buttonText = btnTexts[lang] || btnTexts.es;
-
-                container.innerHTML = `
-                    <div class="text-center mb-4">
-                        <div class="brand-icon mb-3">
-                            <i class="bi bi-taxi-front-fill"></i>
-                        </div>
-                        <h2 class="fw-bold mb-2">${escapeHtml(profile.businessName)}</h2>
-                        <div class="mb-3">
-                            <span class="subtitle-badge">
-                                <i class="bi bi-shield-check me-1"></i> ${escapeHtml(profile.coreValues)}
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="mb-4">
-                        <h6 class="text-uppercase text-secondary fw-semibold mb-3 px-1" style="letter-spacing: 1px; font-size: 0.8rem;">
-                            <i class="bi bi-card-checklist me-1"></i> Servicios Disponibles
-                        </h6>
-                        <ul class="list-group list-group-custom">
-                            ${servicesHtml}
-                        </ul>
-                    </div>
-
-                    <div class="mt-4">
-                        <a href="${whatsappUrl}" target="_blank" class="whatsapp-btn">
-                            <i class="bi bi-whatsapp fs-4"></i> ${buttonText}
-                        </a>
-                    </div>
-                `;
-            } catch (error) {
-                console.error('Error al obtener el perfil de Taxi Alexis:', error);
-                const errorMsg = errorTexts[lang] || errorTexts.es;
-                container.innerHTML = `
-                    <div class="alert alert-danger bg-danger bg-opacity-25 text-white border-danger border-opacity-50 rounded-4 p-4 mt-3 text-center">
-                        <i class="bi bi-exclamation-triangle-fill fs-3 mb-2 d-block"></i>
-                        <p class="mb-0 fw-semibold">${errorMsg}</p>
-                        <small class="text-secondary d-block mt-2">Asegúrate de haber ejecutado el script SQL en MySQL.</small>
-                    </div>
-                `;
-            }
+            });
         }
-
-        function escapeHtml(str) {
-            if (!str) return '';
-            return str
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
+        async function loadProfile() {
+            const routeId = window.location.pathname.match(/^\/perfil\/(\d+)\/?$/)?.[1];
+            if (!routeId) throw new Error('No se encontró el identificador de esta tarjeta.');
+            const response = await fetch(`/api/taxistas/${routeId}`);
+            if (!response.ok) throw new Error(response.status === 404 ? 'No se encontró esta tarjeta.' : 'No se pudo cargar el perfil.');
+            render(await response.json());
         }
-
-        // Cargar por defecto en español
-        document.addEventListener('DOMContentLoaded', () => loadProfile('es'));
+        loadProfile().catch(error => { perfilNode.innerHTML = `<div class="state"><i class="bi bi-exclamation-circle"></i>${escapeHtml(error.message)}</div>`; });
     </script>
 </body>
 </html>
