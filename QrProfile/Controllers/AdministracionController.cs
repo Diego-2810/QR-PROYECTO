@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QrProfile.Models;
 using QrProfile.Repositories;
+using CloudinaryDotNet;
+using CloudinaryDotNet.Actions;
 
 namespace QrProfile.Controllers;
 
@@ -43,9 +45,9 @@ public class AdministracionController : ControllerBase
         request.NombreCompleto = request.NombreCompleto.Trim();
         request.Telefono = request.Telefono.Trim();
         request.FotoUrl = request.FotoUrl?.Trim();
-        request.Vehiculo = request.Vehiculo.Trim();
-        request.Patente = request.Patente.Trim();
-        request.DatosPago = request.DatosPago.Trim();
+        request.Vehiculo = request.Vehiculo?.Trim() ?? string.Empty;
+        request.Patente = request.Patente?.Trim() ?? string.Empty;
+        request.DatosPago = request.DatosPago?.Trim() ?? string.Empty;
         request.Servicios = request.Servicios.Trim();
 
         var actualizado = await _taxistaRepository.ActualizarPropioAsync(googleId, request);

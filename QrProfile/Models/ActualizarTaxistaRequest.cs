@@ -14,13 +14,13 @@ public class ActualizarTaxistaRequest
     public string? FotoUrl { get; set; }
 
     [StringLength(120)]
-    public string Vehiculo { get; set; } = string.Empty;
+    public string? Vehiculo { get; set; } = string.Empty;
 
     [StringLength(30)]
-    public string Patente { get; set; } = string.Empty;
+    public string? Patente { get; set; } = string.Empty;
 
     [StringLength(250)]
-    public string DatosPago { get; set; } = string.Empty;
+    public string? DatosPago { get; set; } = string.Empty;
 
     [Required, StringLength(4000, MinimumLength = 2)]
     public string Servicios { get; set; } = string.Empty;

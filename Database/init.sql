@@ -1,4 +1,5 @@
-USE defaultdb;
+CREATE DATABASE IF NOT EXISTS QrProfileDB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE QrProfileDB;
 
 CREATE TABLE IF NOT EXISTS Languages (
     Code VARCHAR(5) PRIMARY KEY,

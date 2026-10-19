@@ -63,11 +63,11 @@
         <div class="columns">
             <div>
                 <section class="section profile-section" aria-labelledby="profile-title"><div class="section-head"><h2 id="profile-title">Datos del servicio</h2><span class="count">Visible en tu tarjeta pública</span></div>
-                    <form id="profile-form"><div class="form-grid">
+                    <form id="profile-form" enctype="multipart/form-data"><div class="form-grid">
                         <div class="field-full"><label for="nombreCompleto">Nombre completo</label><input id="nombreCompleto" name="nombreCompleto" maxlength="120" required autocomplete="name" placeholder="Nombre y apellido"></div>
                         <div><label for="telefono">Teléfono / WhatsApp</label><input id="telefono" name="telefono" type="tel" maxlength="40" required autocomplete="tel" placeholder="Código de país y número"></div>
-                        <div><label for="fotoUrl">Foto de perfil (URL)</label><input id="fotoUrl" name="fotoUrl" type="url" maxlength="2048" placeholder="https://..."></div>
-                        <div class="field-full photo-preview"><img id="photo-preview" alt="Vista previa de foto" hidden><span class="field-help">La foto debe estar alojada en una dirección web pública segura (HTTPS).</span></div>
+                        <div><label for="ArchivoFoto">Foto de perfil</label><input type="file" id="ArchivoFoto" name="ArchivoFoto" accept="image/*" class="form-control" /><input type="hidden" id="fotoUrl" name="fotoUrl"></div>
+                        <div class="field-full photo-preview"><img id="photo-preview" alt="Vista previa de foto" hidden><span class="field-help">Elegí una foto de tu galería o sacá una con la cámara. Si no elegís ninguna, se mantiene la actual.</span></div>
                         <div><label for="vehiculo">Vehículo</label><input id="vehiculo" name="vehiculo" maxlength="120" placeholder="Marca, modelo y color"></div>
                         <div><label for="patente">Patente</label><input id="patente" name="patente" maxlength="30" placeholder="Ej. AB 123 CD"></div>
                         <div class="field-full"><label for="datosPago">Enlace de pago, CBU o alias</label><textarea id="datosPago" name="datosPago" maxlength="250" placeholder="Pegá un enlace o escribí tu CBU / alias"></textarea></div>
@@ -90,7 +90,7 @@
 
         function escapeHtml(value) { return String(value ?? '').replace(/[&<>"']/g, char => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[char]); }
         async function api(url, options = {}) {
-            const response = await fetch(url, { credentials:'same-origin', ...options, headers:{ ...(options.body ? {'Content-Type':'application/json'} : {}), ...options.headers } });
+            const response = await fetch(url, { credentials:'same-origin', ...options, headers:{ ...(options.body && !(options.body instanceof FormData) ? {'Content-Type':'application/json'} : {}), ...options.headers } });
             if (response.status === 401 || response.status === 403) { window.location.assign('/api/auth/login-google'); throw new Error('La sesión expiró.'); }
             if (!response.ok) throw new Error((await response.text()) || 'Ocurrió un error al consultar el servicio.');
             return response.status === 204 ? null : response.json();
@@ -116,11 +116,22 @@
         }
         profileForm.addEventListener('submit', async event => {
             event.preventDefault(); const status = document.getElementById('save-status'); status.textContent = 'Guardando...';
-            const data = Object.fromEntries(new FormData(profileForm));
-            try { await api('/api/administracion/perfil', { method:'PUT', body:JSON.stringify(data) }); status.textContent = 'Cambios guardados'; await loadProfile(); }
+            const data = new FormData(profileForm);
+            try { await api('/api/taxistas', { method:'POST', body:data }); status.textContent = 'Cambios guardados'; document.getElementById('ArchivoFoto').value = ''; await loadProfile(); }
             catch (error) { status.textContent = error.message; }
         });
         document.getElementById('fotoUrl').addEventListener('input', updatePhotoPreview);
+        document.getElementById('ArchivoFoto').addEventListener('change', event => {
+            const file = event.target.files[0]; const preview = document.getElementById('photo-preview');
+            if (!file) { updatePhotoPreview(); return; }
+            if (preview.src.startsWith('blob:')) URL.revokeObjectURL(preview.src);
+            preview.src = URL.createObjectURL(file); preview.hidden = false;
+        });
+        document.getElementById('photo-preview').addEventListener('error', event => {
+            if (!event.target.src.startsWith('blob:')) return;
+            event.target.hidden = true;
+            document.getElementById('save-status').textContent = 'Vista previa no disponible para este formato (ej. HEIC). Se convertirá a JPG al guardar.';
+        });
         document.getElementById('qr-code').addEventListener('click', () => document.getElementById('qr-dialog').showModal());
         document.getElementById('show-qr').addEventListener('click', () => document.getElementById('qr-dialog').showModal());
         document.getElementById('close-qr').addEventListener('click', () => document.getElementById('qr-dialog').close());
