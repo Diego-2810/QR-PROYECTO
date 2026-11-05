@@ -98,3 +98,4 @@ Pasos para probar manualmente en un entorno local o de staging:
 3. Verificar que el enlace "Ver tarjeta", el texto debajo del QR y la descarga del PNG usen `/perfil/{GUID}` (formato `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`) y no muestren el ID numérico.
 4. Abrir `/perfil/{GUID}` en una ventana de incógnito (sin sesión) y comprobar que la tarjeta pública carga los datos y que la respuesta JSON de `GET /api/taxistas/{GUID}` no incluye el campo `id`.
 5. Verificar que abrir `/perfil/1` y consultar `GET /api/taxistas/1` (o cualquier identificador que no sea un GUID válido o no exista) devuelvan **404 Not Found**.
+

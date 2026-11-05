@@ -27,3 +27,4 @@ ALTER TABLE Taxistas
 --    con Guid.NewGuid() al iniciar.
 UPDATE Taxistas
 SET PublicId = NULL;
+

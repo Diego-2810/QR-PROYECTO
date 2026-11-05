@@ -78,3 +78,4 @@ Orden recomendado para aplicar en producción o staging:
    ```
    (El resultado debe ser `0`).
 5. **Ejecutar `Database/migraciones/001b_taxistas_publicid_exigir.sql`** para fijar la columna `PublicId CHAR(36) NOT NULL`.
+

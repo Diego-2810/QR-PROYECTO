@@ -11,3 +11,4 @@ public class TaxistaPublicoDto
     public string DatosPago { get; set; } = string.Empty;
     public string Servicios { get; set; } = string.Empty;
 }
+
