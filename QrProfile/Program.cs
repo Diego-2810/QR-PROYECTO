@@ -96,6 +96,15 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var taxistaRepository = scope.ServiceProvider.GetRequiredService<ITaxistaRepository>();
+    var filasActualizadas = await taxistaRepository.RellenarPublicIdsFaltantesAsync();
+    app.Logger.LogInformation(
+        "Verificación inicial de PublicId completada. Filas actualizadas: {FilasActualizadas}.",
+        filasActualizadas);
+}
+
 if (trustForwardedHeaders)
 {
     app.UseForwardedHeaders();

@@ -17,6 +17,44 @@ public class TaxistaRepository : ITaxistaRepository
 
     private IDbConnection CreateConnection() => new MySqlConnection(_connectionString);
 
+    public async Task<int> RellenarPublicIdsFaltantesAsync()
+    {
+        using var connection = CreateConnection();
+        const string checkColumnSql = @"SELECT COUNT(*)
+                                        FROM INFORMATION_SCHEMA.COLUMNS
+                                        WHERE TABLE_SCHEMA = DATABASE()
+                                          AND TABLE_NAME = 'Taxistas'
+                                          AND COLUMN_NAME = 'PublicId'";
+        var columnaExiste = await connection.ExecuteScalarAsync<int>(checkColumnSql);
+        if (columnaExiste == 0)
+        {
+            throw new InvalidOperationException(
+                "Falta la columna PublicId en la tabla Taxistas. Ejecutá primero el script Database/migraciones/001a_taxistas_publicid_agregar.sql antes de iniciar la aplicación.");
+        }
+
+        const string selectMissingSql = @"SELECT Id
+                                          FROM Taxistas
+                                          WHERE PublicId IS NULL OR TRIM(PublicId) = ''";
+        var idsSinPublicId = await connection.QueryAsync<int>(selectMissingSql);
+
+        const string updateSql = @"UPDATE Taxistas
+                                   SET PublicId = @PublicId
+                                   WHERE Id = @Id AND (PublicId IS NULL OR TRIM(PublicId) = '')";
+
+        var actualizadas = 0;
+        foreach (var id in idsSinPublicId)
+        {
+            var filas = await connection.ExecuteAsync(updateSql, new
+            {
+                Id = id,
+                PublicId = Guid.NewGuid().ToString("D")
+            });
+            actualizadas += filas;
+        }
+
+        return actualizadas;
+    }
+
     public async Task EnsurePerfilAsync(Usuario usuario)
     {
         using var connection = CreateConnection();
