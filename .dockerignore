@@ -1,0 +1,13 @@
+**/bin/
+**/obj/
+.git/
+.vs/
+**/appsettings.Development.json
+**/appsettings.*.local.json
+**/appsettings.Local.json
+**/secrets.json
+.env
+.env.*
+*.session.sql
+Historial/
+
