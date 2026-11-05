@@ -110,7 +110,7 @@ var homePagePath = Path.Combine(app.Environment.ContentRootPath, "Views", "inici
 var adminPagePath = Path.Combine(app.Environment.ContentRootPath, "Views", "administracion.html");
 
 app.MapGet("/", () => Results.File(homePagePath, "text/html"));
-app.MapGet("/perfil/{taxistaId:int}", () => Results.File(publicPagePath, "text/html"));
+app.MapGet("/perfil/{publicId:guid}", () => Results.File(publicPagePath, "text/html"));
 app.MapGet("/admin", () => Results.File(adminPagePath, "text/html"))
     .RequireAuthorization();
 app.MapGet("/panel", () => Results.File(adminPagePath, "text/html"))

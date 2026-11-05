@@ -21,12 +21,15 @@ public class TaxistaRepository : ITaxistaRepository
     {
         using var connection = CreateConnection();
         const string sql = @"INSERT INTO Taxistas
-                                 (UsuarioId, NombreServicio, NombreCompleto, Telefono, FotoUrl, Vehiculo, Patente, DatosPago, Servicios)
+                                 (PublicId, UsuarioId, NombreServicio, NombreCompleto, Telefono, FotoUrl, Vehiculo, Patente, DatosPago, Servicios)
                              VALUES
-                                 (@UsuarioId, @NombreServicio, @NombreCompleto, '', @FotoUrl, '', '', '', @Servicios)
-                             ON DUPLICATE KEY UPDATE UsuarioId = VALUES(UsuarioId)";
+                                 (@PublicId, @UsuarioId, @NombreServicio, @NombreCompleto, '', @FotoUrl, '', '', '', @Servicios)
+                             ON DUPLICATE KEY UPDATE
+                                 UsuarioId = VALUES(UsuarioId),
+                                 PublicId = COALESCE(NULLIF(PublicId, ''), VALUES(PublicId))";
         await connection.ExecuteAsync(sql, new
         {
+            PublicId = Guid.NewGuid().ToString("D"),
             UsuarioId = usuario.Id,
             NombreServicio = $"{usuario.Nombre} Taxi",
             NombreCompleto = usuario.Nombre,
@@ -35,18 +38,18 @@ public class TaxistaRepository : ITaxistaRepository
         });
     }
 
-    public async Task<TaxistaPerfil?> GetPublicoAsync(int taxistaId)
+    public async Task<TaxistaPublicoDto?> GetPublicoAsync(Guid publicId)
     {
         using var connection = CreateConnection();
-        const string sql = @"SELECT Id, NombreCompleto, Telefono, FotoUrl, Vehiculo, Patente, DatosPago, Servicios
-                             FROM Taxistas WHERE Id = @TaxistaId";
-        return await connection.QuerySingleOrDefaultAsync<TaxistaPerfil>(sql, new { TaxistaId = taxistaId });
+        const string sql = @"SELECT PublicId, NombreCompleto, Telefono, FotoUrl, Vehiculo, Patente, DatosPago, Servicios
+                             FROM Taxistas WHERE PublicId = @PublicId";
+        return await connection.QuerySingleOrDefaultAsync<TaxistaPublicoDto>(sql, new { PublicId = publicId.ToString("D") });
     }
 
     public async Task<TaxistaPerfil?> GetPropioAsync(string googleId)
     {
         using var connection = CreateConnection();
-        const string sql = @"SELECT t.Id, t.NombreCompleto, t.Telefono,
+        const string sql = @"SELECT t.Id, t.PublicId, t.NombreCompleto, t.Telefono,
                                     COALESCE(NULLIF(t.FotoUrl, ''), u.FotoUrl) AS FotoUrl,
                                     t.Vehiculo, t.Patente, t.DatosPago, t.Servicios
                              FROM Taxistas t

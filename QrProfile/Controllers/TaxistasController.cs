@@ -24,10 +24,10 @@ public class TaxistasController : ControllerBase
         _configuration = configuration;
     }
 
-    [HttpGet("{taxistaId:int}")]
-    public async Task<IActionResult> GetPerfil(int taxistaId)
+    [HttpGet("{publicId:guid}")]
+    public async Task<IActionResult> GetPerfil(Guid publicId)
     {
-        var perfil = await _taxistaRepository.GetPublicoAsync(taxistaId);
+        var perfil = await _taxistaRepository.GetPublicoAsync(publicId);
         return perfil is null ? NotFound() : Ok(perfil);
     }
 
