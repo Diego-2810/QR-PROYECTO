@@ -99,7 +99,7 @@
             currentProfile = await api('/api/administracion/perfil');
             profileFields.forEach(field => { document.getElementById(field).value = currentProfile[field] || ''; });
             updatePhotoPreview();
-            const publicUrl = new URL(`/perfil/${currentProfile.id}`, window.location.origin).href;
+            const publicUrl = new URL(`/perfil/${currentProfile.publicId}`, window.location.origin).href;
             document.getElementById('public-link').href = publicUrl;
             document.getElementById('qr-url').textContent = publicUrl;
             const qrNode = document.getElementById('qr-code'); qrNode.replaceChildren();
@@ -141,7 +141,7 @@
         });
         document.getElementById('download-qr').addEventListener('click', () => {
             const image = document.querySelector('#qr-code img'); const canvas = document.querySelector('#qr-code canvas'); const link = document.createElement('a');
-            link.download = `taxi-ya-${currentProfile.id}-qr.png`; link.href = image?.src || canvas?.toDataURL('image/png'); link.click();
+            link.download = `taxi-ya-${currentProfile.publicId}-qr.png`; link.href = image?.src || canvas?.toDataURL('image/png'); link.click();
         });
         document.getElementById('print-qr').addEventListener('click', () => window.print());
         document.getElementById('logout-button').addEventListener('click', async () => { await fetch('/api/auth/logout', { method:'POST', credentials:'same-origin' }); window.location.assign('/'); });

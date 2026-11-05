@@ -20,9 +20,9 @@ No hay un proyecto de pruebas automatizadas en el repositorio. Antes de publicar
 - **Autenticación:** Google OAuth 2.0 y cookie de autenticación ASP.NET Core.
 - **Imágenes:** carga de fotos de perfil mediante Cloudinary (`CloudinaryDotNet`), con conversión a JPG y recorte a 500x500.
 - **Interfaz:** HTML, CSS y JavaScript en `QrProfile/Views` y `QrProfile/wwwroot`.
-- **QR:** generado en el navegador mediante QRCode.js; el contenido dirige a `/perfil/{id}`.
+- **QR:** generado en el navegador mediante QRCode.js; el contenido dirige a `/perfil/{publicId}` (GUID aleatorio).
 
-Los perfiles, usuarios y tarjetas se consultan mediante repositorios Dapper. La aplicación no crea la base ni aplica migraciones al arrancar: un operador debe aplicar `Database/init.sql` antes del primer inicio de sesión.
+Los perfiles, usuarios y tarjetas se consultan mediante repositorios Dapper. La aplicación no crea la base ni aplica migraciones al arrancar: un operador debe aplicar `Database/init.sql` (y las migraciones en `Database/migraciones/` si la base ya existía) antes del primer inicio de sesión.
 
 ## Módulos y rutas
 
@@ -31,8 +31,8 @@ Los perfiles, usuarios y tarjetas se consultan mediante repositorios Dapper. La 
 | `/` | Público | Presentación de Taxi Ya y acceso/registro de taxistas. |
 | `/admin` | Google OAuth | Panel para editar la tarjeta y generar, ampliar, descargar o imprimir el QR. |
 | `/panel` | Google OAuth | Alias del panel. |
-| `/perfil/{taxistaId}` | Público | Tarjeta del taxista para consulta desde celular o navegador. |
-| `GET /api/taxistas/{taxistaId}` | Público | Datos públicos de una tarjeta. |
+| `/perfil/{publicId}` | Público | Tarjeta del taxista para consulta desde celular o navegador (identificada por GUID). |
+| `GET /api/taxistas/{publicId}` | Público | Datos públicos de una tarjeta (por GUID, sin exponer el ID numérico interno). |
 | `POST /api/taxistas` | Autenticado | Guardar el perfil propio y subir opcionalmente un archivo de foto a Cloudinary. |
 | `GET/PUT /api/administracion/perfil` | Autenticado | Consultar y actualizar el perfil propio. |
 | `GET /api/auth/login-google` | Público | Iniciar autenticación Google. |
@@ -134,7 +134,7 @@ No guardar secretos en `appsettings.json`, `appsettings.Development.json`, `Clav
 2. Autenticarse con Google. En el primer acceso se crea el perfil y el navegador abre `/admin`.
 3. Completar nombre, teléfono, foto (subiendo una imagen que se procesa en Cloudinary), vehículo, patente, servicios y datos de pago; guardar los cambios.
 4. En **Generar mi QR**, ampliar el código para mostrarlo en pantalla, descargarlo como PNG o imprimirlo.
-5. El pasajero escanea el código y abre `/perfil/{taxistaId}` sin iniciar sesión. Puede consultar los datos, abrir WhatsApp, llamar, guardar el contacto o copiar la información de pago.
+5. El pasajero escanea el código y abre `/perfil/{publicId}` sin iniciar sesión. Puede consultar los datos, abrir WhatsApp, llamar, guardar el contacto o copiar la información de pago.
 
 ## Configuración y variables de entorno
 

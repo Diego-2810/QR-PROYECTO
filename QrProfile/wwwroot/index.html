@@ -124,7 +124,7 @@
             });
         }
         async function loadProfile() {
-            const routeId = window.location.pathname.match(/^\/perfil\/(\d+)\/?$/)?.[1];
+            const routeId = window.location.pathname.match(/^\/perfil\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\/?$/i)?.[1];
             if (!routeId) throw new Error('No se encontró el identificador de esta tarjeta.');
             const response = await fetch(`/api/taxistas/${routeId}`);
             if (!response.ok) throw new Error(response.status === 404 ? 'No se encontró esta tarjeta.' : 'No se pudo cargar el perfil.');
