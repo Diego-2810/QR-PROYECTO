@@ -7,6 +7,7 @@ Taxi Ya permite a taxistas independientes de Buenos Aires crear una tarjeta digi
 - .NET SDK 10.0, requerido por `QrProfile/QrProfile.csproj` (`net10.0`).
 - MariaDB compatible con `Database/init.sql` o un servidor MySQL compatible, accesible desde la aplicación.
 - Proyecto OAuth 2.0 de tipo aplicación web en Google Cloud, con pantalla de consentimiento configurada.
+- Cuenta en Cloudinary para almacenar las fotos de perfil de los taxistas.
 - Git y una terminal para la configuración local.
 
 No hay un proyecto de pruebas automatizadas en el repositorio. Antes de publicar cambios, ejecutar al menos `dotnet build QrProfile/QrProfile.csproj -c Release` y probar OAuth y lectura/escritura contra una base de staging.
@@ -17,6 +18,7 @@ No hay un proyecto de pruebas automatizadas en el repositorio. Antes de publicar
 - **Persistencia:** Dapper y `MySql.Data` (ADO.NET) contra MariaDB/MySQL.
 - **Esquema:** script SQL reejecutable en `Database/init.sql`; no se usa Entity Framework Core, Pomelo ni `dotnet ef`.
 - **Autenticación:** Google OAuth 2.0 y cookie de autenticación ASP.NET Core.
+- **Imágenes:** carga de fotos de perfil mediante Cloudinary (`CloudinaryDotNet`), con conversión a JPG y recorte a 500x500.
 - **Interfaz:** HTML, CSS y JavaScript en `QrProfile/Views` y `QrProfile/wwwroot`.
 - **QR:** generado en el navegador mediante QRCode.js; el contenido dirige a `/perfil/{id}`.
 
@@ -31,11 +33,12 @@ Los perfiles, usuarios y tarjetas se consultan mediante repositorios Dapper. La 
 | `/panel` | Google OAuth | Alias del panel. |
 | `/perfil/{taxistaId}` | Público | Tarjeta del taxista para consulta desde celular o navegador. |
 | `GET /api/taxistas/{taxistaId}` | Público | Datos públicos de una tarjeta. |
+| `POST /api/taxistas` | Autenticado | Guardar el perfil propio y subir opcionalmente un archivo de foto a Cloudinary. |
 | `GET/PUT /api/administracion/perfil` | Autenticado | Consultar y actualizar el perfil propio. |
 | `GET /api/auth/login-google` | Público | Iniciar autenticación Google. |
 | `POST /api/auth/logout` | Cookie de autenticación | Cerrar sesión. |
 
-En el primer acceso Google se registra o recupera el usuario y se crea su perfil de taxista. El panel guarda nombre, teléfono/WhatsApp, URL de foto, vehículo, patente, servicios y datos o enlace de pago. La foto se proporciona como URL pública; la aplicación no ofrece carga de archivos.
+En el primer acceso Google se registra o recupera el usuario y se crea su perfil de taxista. El panel guarda nombre, teléfono/WhatsApp, foto (subiendo un archivo que se almacena en Cloudinary o conservando la URL actual), vehículo, patente, servicios y datos o enlace de pago.
 
 ## Configuración local
 
@@ -76,8 +79,12 @@ https://localhost:7215/signin-google
 Configurar las credenciales localmente. El proyecto incluye `UserSecretsId`, y `WebApplication.CreateBuilder` carga User Secrets automáticamente en Development.
 
 ```bash
-dotnet user-secrets set "Authentication:Google:ClientId" "<client-id>" --project QrProfile/QrProfile.csproj
-dotnet user-secrets set "Authentication:Google:ClientSecret" "<client-secret>" --project QrProfile/QrProfile.csproj
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=127.0.0.1;Port=3306;Database=QrProfileDB;User ID=taxiya_local;Password=clave-local-ficticia;" --project QrProfile/QrProfile.csproj
+dotnet user-secrets set "Authentication:Google:ClientId" "000000000000-ejemplo.apps.googleusercontent.com" --project QrProfile/QrProfile.csproj
+dotnet user-secrets set "Authentication:Google:ClientSecret" "secreto-google-ficticio" --project QrProfile/QrProfile.csproj
+dotnet user-secrets set "Cloudinary:CloudName" "mi-cloud-ficticio" --project QrProfile/QrProfile.csproj
+dotnet user-secrets set "Cloudinary:ApiKey" "000000000000000" --project QrProfile/QrProfile.csproj
+dotnet user-secrets set "Cloudinary:ApiSecret" "secreto-cloudinary-ficticio" --project QrProfile/QrProfile.csproj
 ```
 
 Si la pantalla de consentimiento está en modo de prueba, incluir las cuentas que iniciarán sesión como usuarios de prueba. No reutilizar secretos OAuth que se hayan compartido o comprometido: revocarlos y crear otros nuevos.
@@ -106,6 +113,7 @@ Crear un servicio web con raíz del repositorio y configurar:
 - **Environment:** `ConnectionStrings__DefaultConnection` con la cadena entregada por el proveedor MariaDB/MySQL.
 - **Environment:** `Authentication__Google__ClientId` con el Client ID OAuth.
 - **Environment:** `Authentication__Google__ClientSecret` con el Client Secret OAuth.
+- **Environment:** `Cloudinary__CloudName`, `Cloudinary__ApiKey` y `Cloudinary__ApiSecret` con las credenciales de Cloudinary.
 - **Environment:** `ForwardedHeaders__TrustProxyHeaders=true` cuando la aplicación esté detrás del proxy TLS de Render.
 
 La opción de forwarded headers permite a ASP.NET Core usar el protocolo externo indicado por el proxy para construir el callback OAuth. Activarla solo cuando Kestrel esté detrás de un proxy inverso confiable; la aplicación acepta los encabezados reenviados en ese modo.
@@ -124,19 +132,22 @@ No guardar secretos en `appsettings.json`, `appsettings.Development.json`, `Clav
 
 1. Abrir `/` y elegir **Acceso / Registro de Taxistas**.
 2. Autenticarse con Google. En el primer acceso se crea el perfil y el navegador abre `/admin`.
-3. Completar nombre, teléfono, foto mediante URL, vehículo, patente, servicios y datos de pago; guardar los cambios.
+3. Completar nombre, teléfono, foto (subiendo una imagen que se procesa en Cloudinary), vehículo, patente, servicios y datos de pago; guardar los cambios.
 4. En **Generar mi QR**, ampliar el código para mostrarlo en pantalla, descargarlo como PNG o imprimirlo.
 5. El pasajero escanea el código y abre `/perfil/{taxistaId}` sin iniciar sesión. Puede consultar los datos, abrir WhatsApp, llamar, guardar el contacto o copiar la información de pago.
 
-## Configuración de producción
+## Configuración y variables de entorno
 
-La configuración utiliza los proveedores estándar de .NET. Las variables de entorno representan niveles con `__`:
+`QrProfile/appsettings.json` deja vacías las claves sensibles. La configuración utiliza los proveedores estándar de .NET (User Secrets en `Development` y variables de entorno en cualquier entorno, representando niveles con `__`):
 
-| Clave .NET | Variable de entorno |
-| --- | --- |
-| `ConnectionStrings:DefaultConnection` | `ConnectionStrings__DefaultConnection` |
-| `Authentication:Google:ClientId` | `Authentication__Google__ClientId` |
-| `Authentication:Google:ClientSecret` | `Authentication__Google__ClientSecret` |
-| `ForwardedHeaders:TrustProxyHeaders` | `ForwardedHeaders__TrustProxyHeaders` |
+| Variable de entorno | Clave .NET | Ejemplo ficticio |
+| --- | --- | --- |
+| `ConnectionStrings__DefaultConnection` | `ConnectionStrings:DefaultConnection` | `Server=db.ejemplo.internal;Port=3306;Database=QrProfileDB;User ID=taxiya_app;Password=clave-ficticia;` |
+| `Authentication__Google__ClientId` | `Authentication:Google:ClientId` | `000000000000-ejemplo.apps.googleusercontent.com` |
+| `Authentication__Google__ClientSecret` | `Authentication:Google:ClientSecret` | `secreto-google-ficticio` |
+| `ForwardedHeaders__TrustProxyHeaders` | `ForwardedHeaders:TrustProxyHeaders` | `true` |
+| `Cloudinary__CloudName` | `Cloudinary:CloudName` | `mi-cloud-ficticio` |
+| `Cloudinary__ApiKey` | `Cloudinary:ApiKey` | `000000000000000` |
+| `Cloudinary__ApiSecret` | `Cloudinary:ApiSecret` | `secreto-cloudinary-ficticio` |
 
-Las credenciales OAuth son obligatorias; si faltan, la aplicación detiene el arranque con instrucciones en Development. La cookie de autenticación se marca `Secure` fuera de Development. El procesamiento de forwarded headers no se activa por defecto.
+La cadena de conexión y las credenciales OAuth son obligatorias; si faltan, la aplicación detiene el arranque con instrucciones en Development. La cookie de autenticación se marca `Secure` fuera de Development. El procesamiento de forwarded headers no se activa por defecto.
