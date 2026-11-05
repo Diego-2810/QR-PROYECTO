@@ -3,11 +3,11 @@
 -- =============================================================================
 -- Cuándo ejecutar: ANTES de desplegar la versión nueva de la aplicación.
 -- Compatibilidad: MySQL 8.0+ y MariaDB 10.x+.
--- Idempotencia: puede ejecutarse más de una vez sin fallar ni sobrescribir
---               los PublicId ya generados.
--- Seguridad para el código actual: la columna se crea como NULL para que las
---               inserciones del código viejo (que todavía no envía PublicId)
---               sigan funcionando durante la ventana de despliegue.
+-- Idempotencia: puede ejecutarse más de una vez sin fallar.
+-- Importante: NO rellena filas con UUID() de MySQL/MariaDB porque UUID() genera
+--             identificadores versión 1 (basados en tiempo, predecibles).
+--             Las filas existentes quedan en NULL y la aplicación les asigna
+--             Guid.NewGuid() (UUID v4 aleatorio) automáticamente al iniciar.
 -- =============================================================================
 
 USE QrProfileDB;
@@ -31,13 +31,9 @@ PREPARE stmt_columna FROM @sql_agregar_columna;
 EXECUTE stmt_columna;
 DEALLOCATE PREPARE stmt_columna;
 
--- 2. Rellenar con UUID() las filas existentes que tengan PublicId en NULL o vacío.
-UPDATE Taxistas
-SET PublicId = LOWER(UUID())
-WHERE PublicId IS NULL OR TRIM(PublicId) = '';
-
--- 3. Crear el índice UNIQUE sobre PublicId solo si todavía no existe ningún
---    índice único sobre esa columna (por ejemplo si init.sql ya creó uno).
+-- 2. Crear el índice UNIQUE sobre PublicId solo si todavía no existe ningún
+--    índice único sobre esa columna (en MySQL/MariaDB un índice UNIQUE permite
+--    múltiples valores NULL mientras la aplicación aún no haya rellenado las filas).
 SET @indice_existe := (
     SELECT COUNT(*)
     FROM INFORMATION_SCHEMA.STATISTICS
