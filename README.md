@@ -101,7 +101,17 @@ Abrir `https://localhost:7215/`. También está disponible `http://localhost:526
 
 ### Base de datos
 
-Usar una instancia MariaDB/MySQL gestionada o un VPS accesible desde Render. Habilitar TLS si el proveedor lo ofrece, limitar conexiones entrantes y ejecutar `Database/init.sql` una vez desde una conexión administrativa. Planificar copias de seguridad y aplicar cambios futuros del esquema de forma controlada; la aplicación no ejecuta migraciones al arrancar.
+Usar una instancia MariaDB/MySQL gestionada o un VPS accesible desde Render. Habilitar TLS si el proveedor lo ofrece, limitar conexiones entrantes y ejecutar `Database/init.sql` una vez desde una conexión administrativa. Planificar copias de seguridad y aplicar cambios futuros del esquema de forma controlada.
+
+Para bases de datos ya existentes (migración a `PublicId` aleatorio sin usar `UUID()` del motor), aplicar los pasos en este orden:
+
+1. **Respaldo:** realizar una copia de seguridad completa de la base de datos.
+2. **Ejecutar `Database/migraciones/001a_taxistas_publicid_agregar.sql`:** agrega la columna `PublicId CHAR(36) NULL` y su índice `UNIQUE` (dejando las filas existentes en `NULL`).
+3. **Desplegar e iniciar la aplicación:** al arrancar, la aplicación asigna automáticamente un `Guid.NewGuid()` aleatorio a cada fila de `Taxistas` que tenga `PublicId` en `NULL` o vacío, y registra en el log únicamente la cantidad de filas actualizadas. Si la columna `PublicId` no existe, el arranque se detiene indicando ejecutar primero `001a`.
+4. **Verificar que no queden `NULL`:** comprobar con `SELECT COUNT(*) FROM Taxistas WHERE PublicId IS NULL OR TRIM(PublicId) = '';` que el resultado sea `0`.
+5. **Ejecutar `Database/migraciones/001b_taxistas_publicid_exigir.sql`:** verifica que no existan filas sin `PublicId` (abortando si quedara alguna) y fija la columna como `CHAR(36) NOT NULL`.
+
+> Si en una base ya se habían ejecutado versiones previas que generaban `PublicId` con `UUID()` de MySQL/MariaDB, existe el script manual y opcional `Database/migraciones/001c_regenerar_publicid.sql` (teniendo en cuenta que invalida los enlaces y códigos QR actuales).
 
 ### Servicio web
 
