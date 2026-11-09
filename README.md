@@ -99,9 +99,13 @@ Abrir `https://localhost:7215/`. También está disponible `http://localhost:526
 
 ## Despliegue en Render
 
+> **Paso a paso completo en [GUIA-RENDER.md](GUIA-RENDER.md)** (Aiven + Cloudinary + Google + Blueprint `render.yaml`).
+
 ### Base de datos
 
-Usar una instancia MariaDB/MySQL gestionada o un VPS accesible desde Render. Habilitar TLS si el proveedor lo ofrece, limitar conexiones entrantes y ejecutar `Database/init.sql` una vez desde una conexión administrativa. Planificar copias de seguridad y aplicar cambios futuros del esquema de forma controlada.
+Usar una instancia MariaDB/MySQL gestionada o un VPS accesible desde Render. Habilitar TLS si el proveedor lo ofrece, limitar conexiones entrantes y ejecutar una vez desde una conexión administrativa `Database/init-nube.sql` (proveedores que ya dan una base creada, como Aiven) o `Database/init.sql` (servidor propio). Planificar copias de seguridad y aplicar cambios futuros del esquema de forma controlada.
+
+En una base que ya existía, ejecutar también `Database/migraciones/002_data_protection_keys.sql` antes de iniciar esta versión: crea la tabla donde se guardan las claves de la cookie de sesión, para que los taxistas no pierdan la sesión en cada reinicio.
 
 Para bases de datos ya existentes (migración a `PublicId` aleatorio sin usar `UUID()` del motor), aplicar los pasos en este orden:
 

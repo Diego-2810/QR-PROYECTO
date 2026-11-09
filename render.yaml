@@ -1,0 +1,32 @@
+# Blueprint de Render: crea el servicio web desde este repositorio.
+# Uso: Render → New → Blueprint → elegir el repo. Las variables con "sync: false"
+# Render te las pide al crear el servicio (no van escritas acá porque son secretas).
+services:
+  - type: web
+    name: taxi-ya
+    runtime: docker
+    plan: free
+    branch: main
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: PORT
+        value: "8080"
+      # Render atiende en HTTPS y reenvía a la app por HTTP; sin esto falla el login de Google.
+      - key: ForwardedHeaders__TrustProxyHeaders
+        value: "true"
+      - key: ConnectionStrings__DefaultConnection
+        sync: false
+      - key: Authentication__Google__ClientId
+        sync: false
+      - key: Authentication__Google__ClientSecret
+        sync: false
+      - key: Cloudinary__CloudName
+        sync: false
+      - key: Cloudinary__ApiKey
+        sync: false
+      - key: Cloudinary__ApiSecret
+        sync: false

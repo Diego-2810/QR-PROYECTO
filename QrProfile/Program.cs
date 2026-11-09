@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Authentication.OAuth.Claims;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 var googleAuth = builder.Configuration.GetSection("Authentication:Google");
@@ -59,6 +62,26 @@ if (trustForwardedHeaders)
     });
 }
 
+// Claves de la cookie de sesión guardadas en la base (ver MySqlXmlRepository).
+builder.Services.AddDataProtection().SetApplicationName("TaxiYa");
+builder.Services.Configure<KeyManagementOptions>(options =>
+    options.XmlRepository = new MySqlXmlRepository(connectionString));
+
+// /health: Render lo consulta para saber si la app está viva y conectada a la base.
+builder.Services.AddHealthChecks().AddAsyncCheck("base-de-datos", async cancellationToken =>
+{
+    try
+    {
+        await using var connection = new MySqlConnection(connectionString);
+        await connection.OpenAsync(cancellationToken);
+        return HealthCheckResult.Healthy();
+    }
+    catch (Exception exception)
+    {
+        return HealthCheckResult.Unhealthy("Sin conexión a la base de datos.", exception);
+    }
+});
+
 builder.Services.AddScoped<IProfileRepository, ProfileRepository>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
@@ -95,6 +118,15 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
+
+await MySqlXmlRepository.VerificarTablaAsync(connectionString);
+
+var cloudinary = app.Configuration.GetSection("Cloudinary");
+if (new[] { "CloudName", "ApiKey", "ApiSecret" }.Any(clave => string.IsNullOrWhiteSpace(cloudinary[clave])))
+{
+    app.Logger.LogWarning(
+        "Cloudinary no está configurado (Cloudinary__CloudName, Cloudinary__ApiKey, Cloudinary__ApiSecret). La app funciona, pero los taxistas no van a poder subir fotos.");
+}
 
 using (var scope = app.Services.CreateScope())
 {
@@ -140,6 +172,7 @@ app.MapGet("/api/profile/{lang}", async (string lang, IProfileService profileSer
     return profile is not null ? Results.Ok(profile) : Results.NotFound("Profile not found for this language.");
 });
 
+app.MapHealthChecks("/health");
 app.MapControllers();
-    
+
 app.Run();

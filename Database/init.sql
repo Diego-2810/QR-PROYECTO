@@ -41,6 +41,13 @@ CREATE TABLE IF NOT EXISTS Taxistas (
     CONSTRAINT FK_Taxistas_Usuarios FOREIGN KEY (UsuarioId) REFERENCES Usuarios (Id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS DataProtectionKeys (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    FriendlyName VARCHAR(255) NULL,
+    `Xml` TEXT NOT NULL,
+    FechaCreacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 INSERT IGNORE INTO
     Languages (Code, Name)
 VALUES ('es', 'Español'),

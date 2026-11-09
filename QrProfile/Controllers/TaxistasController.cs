@@ -44,6 +44,13 @@ public class TaxistasController : ControllerBase
 
         if (ArchivoFoto != null && ArchivoFoto.Length > 0)
         {
+            if (new[] { "CloudName", "ApiKey", "ApiSecret" }.Any(clave => string.IsNullOrWhiteSpace(_configuration[$"Cloudinary:{clave}"])))
+            {
+                return Problem(
+                    statusCode: StatusCodes.Status503ServiceUnavailable,
+                    title: "La subida de fotos todavía no está configurada en el servidor. Guardá sin foto o avisá al administrador.");
+            }
+
             var account = new Account(
                 _configuration["Cloudinary:CloudName"],
                 _configuration["Cloudinary:ApiKey"],
