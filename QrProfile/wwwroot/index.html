@@ -125,6 +125,7 @@
         <main id="perfil" aria-live="polite"><div class="state"><i class="bi bi-arrow-repeat"></i><span data-i18n="loading">Cargando tarjeta...</span></div></main>
         <footer><span>Taxi Ya · <span data-i18n="footer">Tarjeta digital para taxistas</span> <span id="year"></span></span><a href="/api/auth/login-google"><span data-i18n="driverAccess">Acceso taxistas</span> <i class="bi bi-arrow-up-right"></i></a></footer>
     </div>
+    <script src="/js/taxiya-comun.js?v=1"></script>
     <script>
         // ---------- Textos en cada idioma ----------
         const I18N = {
@@ -265,8 +266,14 @@
             const phone = profile.telefono || '';
             const phoneDigits = phone.replace(/\D/g, '');
             const photoUrl = safeWebUrl(profile.fotoUrl || '');
-            const services = (profile.servicios || '').split(/[,;\n]/).map(item => item.trim()).filter(Boolean);
-            const serviceItems = services.map(service => `<li><i class="bi bi-check-circle-fill"></i><span>${escapeHtml(service)}</span></li>`).join('');
+            // Los servicios del catálogo se muestran traducidos; los escritos a mano, tal cual.
+            const seen = new Set();
+            const services = TaxiYa.separarServicios(profile.servicios).map(text => {
+                const item = TaxiYa.buscarServicio(text);
+                return { label: item ? item[lang] : text, icon: item ? item.icon : 'bi-check-circle-fill' };
+            }).filter(service => !seen.has(service.label) && seen.add(service.label));
+            const serviceItems = services.map(service => `<li><i class="bi ${service.icon}"></i><span>${escapeHtml(service.label)}</span></li>`).join('');
+            const phoneDisplay = TaxiYa.formatearTelefono(phone);
             const payment = (profile.datosPago || '').trim();
             const paymentUrl = safeWebUrl(payment);
             const initials = name.trim().split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase();
@@ -274,7 +281,7 @@
             perfilNode.innerHTML = `
                 <section class="profile" aria-labelledby="profile-name">
                     <div class="profile-head"><div class="profile-photo">${photoUrl ? `<img src="${escapeHtml(photoUrl)}" alt="${escapeHtml(t('photoAlt', { name }))}">` : `<span aria-label="${escapeHtml(t('initials'))}">${escapeHtml(initials)}</span>`}</div>
-                        <div><p class="profile-kicker"><span class="status-dot"></span> ${escapeHtml(t('card'))}</p><h1 id="profile-name">${escapeHtml(name)}</h1>${phone ? `<p class="profile-phone">${escapeHtml(phone)}</p>` : ''}</div>
+                        <div><p class="profile-kicker"><span class="status-dot"></span> ${escapeHtml(t('card'))}</p><h1 id="profile-name">${escapeHtml(name)}</h1>${phone ? `<p class="profile-phone">${escapeHtml(phoneDisplay)}</p>` : ''}</div>
                     </div>
                     ${profile.vehiculo || profile.patente ? `<div class="vehicle">${profile.vehiculo ? `<span><i class="bi bi-car-front"></i>${escapeHtml(profile.vehiculo)}</span>` : ''}${profile.patente ? `<span><i class="bi bi-card-text"></i>${escapeHtml(profile.patente)}</span>` : ''}</div>` : ''}
                     <div class="services"><p class="section-label">${escapeHtml(t('services'))}</p>${serviceItems ? `<ul class="service-list">${serviceItems}</ul>` : `<p class="lead">${escapeHtml(t('servicesEmpty'))}</p>`}</div>
