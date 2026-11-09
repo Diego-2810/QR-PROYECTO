@@ -34,6 +34,11 @@
         input,textarea { width:100%; padding:12px 13px; border:1px solid #c9cec4; border-radius:4px; background:var(--surface); color:var(--ink); }
         input:focus,textarea:focus { outline:2px solid #245c4544; border-color:var(--green); }
         textarea { min-height:125px; resize:vertical; } .field-help { margin:7px 0 0; color:var(--muted); font-size:.82rem; }
+        .chips { display:flex; flex-wrap:wrap; gap:8px; margin:4px 0 12px; }
+        .chip { display:inline-flex; align-items:center; gap:7px; min-height:38px; padding:0 13px; border:1px solid #c9cec4; border-radius:999px; background:var(--surface); color:var(--ink); font-size:.88rem; font-weight:600; cursor:pointer; transition:background .15s ease,border-color .15s ease; }
+        .chip:hover { border-color:var(--green); }
+        .chip[aria-pressed="true"] { border-color:var(--green); background:var(--green); color:#fff; }
+        .chip .bi-check-lg { display:none; } .chip[aria-pressed="true"] .bi-check-lg { display:inline; } .chip[aria-pressed="true"] .chip-icon { display:none; }
         .form-actions { display:flex; align-items:center; gap:14px; margin-top:18px; } #save-status { color:var(--green); font-size:.88rem; }
         .qr-section { margin-top:35px; } .qr-layout { display:flex; align-items:center; gap:22px; padding:19px 0; border-bottom:1px solid var(--line); }
         #qr-code { display:grid; width:166px; height:166px; flex:0 0 166px; place-items:center; border:1px solid var(--line); background:#fff; cursor:zoom-in; }
@@ -63,15 +68,15 @@
         <div class="columns">
             <div>
                 <section class="section profile-section" aria-labelledby="profile-title"><div class="section-head"><h2 id="profile-title">Datos del servicio</h2><span class="count">Visible en tu tarjeta pública</span></div>
-                    <form id="profile-form"><div class="form-grid">
+                    <form id="profile-form" enctype="multipart/form-data"><div class="form-grid">
                         <div class="field-full"><label for="nombreCompleto">Nombre completo</label><input id="nombreCompleto" name="nombreCompleto" maxlength="120" required autocomplete="name" placeholder="Nombre y apellido"></div>
-                        <div><label for="telefono">Teléfono / WhatsApp</label><input id="telefono" name="telefono" type="tel" maxlength="40" required autocomplete="tel" placeholder="Código de país y número"></div>
-                        <div><label for="fotoUrl">Foto de perfil (URL)</label><input id="fotoUrl" name="fotoUrl" type="url" maxlength="2048" placeholder="https://..."></div>
-                        <div class="field-full photo-preview"><img id="photo-preview" alt="Vista previa de foto" hidden><span class="field-help">La foto debe estar alojada en una dirección web pública segura (HTTPS).</span></div>
+                        <div><label for="telefono">Teléfono / WhatsApp</label><input id="telefono" name="telefono" type="tel" maxlength="40" required autocomplete="tel" inputmode="tel" placeholder="+54 9 11 1234 5678" pattern="\s*(\+|00)\s*[1-9][\d\s\-\(\)\.]{7,}" title="Ingresá el teléfono con código de país, por ejemplo +54 9 11 1234 5678." aria-describedby="phone-help"><p class="field-help" id="phone-help">Con código de país, para que los pasajeros extranjeros puedan escribirte. Celular de Argentina: +54 9 y el número con característica.</p></div>
+                        <div><label for="ArchivoFoto">Foto de perfil</label><input type="file" id="ArchivoFoto" name="ArchivoFoto" accept="image/*" class="form-control" /><input type="hidden" id="fotoUrl" name="fotoUrl"></div>
+                        <div class="field-full photo-preview"><img id="photo-preview" alt="Vista previa de foto" hidden><span class="field-help">Elegí una foto de tu galería o sacá una con la cámara. Si no elegís ninguna, se mantiene la actual.</span></div>
                         <div><label for="vehiculo">Vehículo</label><input id="vehiculo" name="vehiculo" maxlength="120" placeholder="Marca, modelo y color"></div>
                         <div><label for="patente">Patente</label><input id="patente" name="patente" maxlength="30" placeholder="Ej. AB 123 CD"></div>
                         <div class="field-full"><label for="datosPago">Enlace de pago, CBU o alias</label><textarea id="datosPago" name="datosPago" maxlength="250" placeholder="Pegá un enlace o escribí tu CBU / alias"></textarea></div>
-                        <div class="field-full"><label for="servicios">Servicios que realizás</label><textarea id="servicios" name="servicios" maxlength="4000" required placeholder="Traslados, aeropuerto, viajes programados..."></textarea><p class="field-help">Separá cada servicio con una coma.</p></div>
+                        <div class="field-full"><label for="servicios">Servicios que realizás</label><p class="field-help" id="chips-help">Tocá los que ofrecés: se traducen solos al inglés y al portugués para tus pasajeros extranjeros.</p><div class="chips" id="service-chips" role="group" aria-labelledby="chips-help"></div><textarea id="servicios" name="servicios" maxlength="4000" required placeholder="Elegí servicios de la lista o escribí los tuyos, separados por coma" aria-describedby="servicios-help"></textarea><p class="field-help" id="servicios-help">Podés agregar otros servicios separados por coma. Esos se muestran tal como los escribas, sin traducir.</p></div>
                     </div><div class="form-actions"><button class="button" type="submit"><i class="bi bi-check2"></i>Guardar cambios</button><span id="save-status" role="status"></span></div></form>
                 </section>
                 <section class="section qr-section" id="qr-section" aria-labelledby="qr-title"><div class="section-head"><h2 id="qr-title">Generar mi QR</h2><span class="count">Listo para compartir</span></div>
@@ -82,6 +87,7 @@
     </main>
     <dialog class="qr-dialog" id="qr-dialog" aria-labelledby="qr-dialog-title"><h2 id="qr-dialog-title">Tu código QR</h2><p id="qr-dialog-url"></p><div id="qr-large"></div><div class="dialog-actions"><button class="button" id="fullscreen-qr" type="button"><i class="bi bi-arrows-fullscreen"></i>Pantalla completa</button><button class="button button-soft" id="close-qr" type="button"><i class="bi bi-x-lg"></i>Cerrar</button></div></dialog>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="/js/taxiya-comun.js?v=1"></script>
     <script>
         const profileForm = document.getElementById('profile-form');
         const pageError = document.getElementById('page-error');
@@ -90,16 +96,44 @@
 
         function escapeHtml(value) { return String(value ?? '').replace(/[&<>"']/g, char => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[char]); }
         async function api(url, options = {}) {
-            const response = await fetch(url, { credentials:'same-origin', ...options, headers:{ ...(options.body ? {'Content-Type':'application/json'} : {}), ...options.headers } });
+            const response = await fetch(url, { credentials:'same-origin', ...options, headers:{ ...(options.body && !(options.body instanceof FormData) ? {'Content-Type':'application/json'} : {}), ...options.headers } });
             if (response.status === 401 || response.status === 403) { window.location.assign('/api/auth/login-google'); throw new Error('La sesión expiró.'); }
-            if (!response.ok) throw new Error((await response.text()) || 'Ocurrió un error al consultar el servicio.');
+            if (!response.ok) throw new Error(await errorMessage(response));
             return response.status === 204 ? null : response.json();
+        }
+        async function errorMessage(response) {
+            const text = await response.text();
+            try {
+                const problem = JSON.parse(text);
+                const messages = Object.values(problem.errors || {}).flat();
+                return messages.length ? messages.join(' ') : (problem.title || text);
+            } catch { return text || 'Ocurrió un error al consultar el servicio.'; }
+        }
+        // Misma regla que TelefonoInternacional.Normalizar en el servidor.
+        function normalizePhone(value) {
+            let clean = String(value ?? '').trim().replace(/[\s\-().]/g, '');
+            if (clean.startsWith('00')) clean = '+' + clean.slice(2);
+            return /^\+[1-9]\d{7,14}$/.test(clean) ? clean : null;
+        }
+        const phoneHelpDefault = document.getElementById('phone-help').textContent;
+        function updatePhoneHelp() {
+            const help = document.getElementById('phone-help');
+            const value = document.getElementById('telefono').value;
+            const normalized = normalizePhone(value);
+            let warning = '';
+            if (value.trim() && !normalized) warning = 'Falta el código de país. Ejemplo: +54 9 11 1234 5678. Sin él, el botón de WhatsApp de tu tarjeta le escribe a otro número.';
+            else if (normalized?.startsWith('+54') && !normalized.startsWith('+549')) warning = 'Si es un celular de Argentina, agregá un 9 después de +54 para que funcione WhatsApp.';
+            help.textContent = warning || phoneHelpDefault;
+            help.style.color = warning ? 'var(--red)' : '';
         }
         async function loadProfile() {
             currentProfile = await api('/api/administracion/perfil');
             profileFields.forEach(field => { document.getElementById(field).value = currentProfile[field] || ''; });
+            document.getElementById('telefono').value = TaxiYa.formatearTelefono(currentProfile.telefono || '');
             updatePhotoPreview();
-            const publicUrl = new URL(`/perfil/${currentProfile.id}`, window.location.origin).href;
+            updatePhoneHelp();
+            updateChips();
+            const publicUrl = new URL(`/perfil/${currentProfile.publicId}`, window.location.origin).href;
             document.getElementById('public-link').href = publicUrl;
             document.getElementById('qr-url').textContent = publicUrl;
             const qrNode = document.getElementById('qr-code'); qrNode.replaceChildren();
@@ -116,11 +150,54 @@
         }
         profileForm.addEventListener('submit', async event => {
             event.preventDefault(); const status = document.getElementById('save-status'); status.textContent = 'Guardando...';
-            const data = Object.fromEntries(new FormData(profileForm));
-            try { await api('/api/administracion/perfil', { method:'PUT', body:JSON.stringify(data) }); status.textContent = 'Cambios guardados'; await loadProfile(); }
+            const data = new FormData(profileForm);
+            try { await api('/api/taxistas', { method:'POST', body:data }); status.textContent = 'Cambios guardados'; document.getElementById('ArchivoFoto').value = ''; await loadProfile(); }
             catch (error) { status.textContent = error.message; }
         });
         document.getElementById('fotoUrl').addEventListener('input', updatePhotoPreview);
+        document.getElementById('telefono').addEventListener('input', updatePhoneHelp);
+
+        // ---------- Botones del catálogo de servicios ----------
+        // El textarea es la lista completa que se guarda; los botones agregan o quitan servicios del catálogo.
+        const servicesInput = document.getElementById('servicios');
+        const chipsNode = document.getElementById('service-chips');
+        TaxiYa.SERVICIOS.forEach((servicio, index) => {
+            const chip = document.createElement('button');
+            chip.type = 'button';
+            chip.className = 'chip';
+            chip.dataset.index = index;
+            chip.setAttribute('aria-pressed', 'false');
+            chip.innerHTML = `<i class="bi ${servicio.icon} chip-icon"></i><i class="bi bi-check-lg"></i><span>${escapeHtml(servicio.es)}</span>`;
+            chip.addEventListener('click', () => toggleService(servicio));
+            chipsNode.appendChild(chip);
+        });
+        function selectedServices() {
+            return new Set(TaxiYa.separarServicios(servicesInput.value).map(TaxiYa.buscarServicio).filter(Boolean));
+        }
+        function updateChips() {
+            const selected = selectedServices();
+            chipsNode.querySelectorAll('.chip').forEach(chip => {
+                chip.setAttribute('aria-pressed', String(selected.has(TaxiYa.SERVICIOS[chip.dataset.index])));
+            });
+        }
+        function toggleService(servicio) {
+            const list = TaxiYa.separarServicios(servicesInput.value);
+            const without = list.filter(text => TaxiYa.buscarServicio(text) !== servicio);
+            servicesInput.value = (without.length === list.length ? [...list, servicio.es] : without).join(', ');
+            updateChips();
+        }
+        servicesInput.addEventListener('input', updateChips);
+        document.getElementById('ArchivoFoto').addEventListener('change', event => {
+            const file = event.target.files[0]; const preview = document.getElementById('photo-preview');
+            if (!file) { updatePhotoPreview(); return; }
+            if (preview.src.startsWith('blob:')) URL.revokeObjectURL(preview.src);
+            preview.src = URL.createObjectURL(file); preview.hidden = false;
+        });
+        document.getElementById('photo-preview').addEventListener('error', event => {
+            if (!event.target.src.startsWith('blob:')) return;
+            event.target.hidden = true;
+            document.getElementById('save-status').textContent = 'Vista previa no disponible para este formato (ej. HEIC). Se convertirá a JPG al guardar.';
+        });
         document.getElementById('qr-code').addEventListener('click', () => document.getElementById('qr-dialog').showModal());
         document.getElementById('show-qr').addEventListener('click', () => document.getElementById('qr-dialog').showModal());
         document.getElementById('close-qr').addEventListener('click', () => document.getElementById('qr-dialog').close());
@@ -130,7 +207,7 @@
         });
         document.getElementById('download-qr').addEventListener('click', () => {
             const image = document.querySelector('#qr-code img'); const canvas = document.querySelector('#qr-code canvas'); const link = document.createElement('a');
-            link.download = `taxi-ya-${currentProfile.id}-qr.png`; link.href = image?.src || canvas?.toDataURL('image/png'); link.click();
+            link.download = `taxi-ya-${currentProfile.publicId}-qr.png`; link.href = image?.src || canvas?.toDataURL('image/png'); link.click();
         });
         document.getElementById('print-qr').addEventListener('click', () => window.print());
         document.getElementById('logout-button').addEventListener('click', async () => { await fetch('/api/auth/logout', { method:'POST', credentials:'same-origin' }); window.location.assign('/'); });

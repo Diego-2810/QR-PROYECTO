@@ -17,16 +17,57 @@ public class TaxistaRepository : ITaxistaRepository
 
     private IDbConnection CreateConnection() => new MySqlConnection(_connectionString);
 
+    public async Task<int> RellenarPublicIdsFaltantesAsync()
+    {
+        using var connection = CreateConnection();
+        const string checkColumnSql = @"SELECT COUNT(*)
+                                        FROM INFORMATION_SCHEMA.COLUMNS
+                                        WHERE TABLE_SCHEMA = DATABASE()
+                                          AND TABLE_NAME = 'Taxistas'
+                                          AND COLUMN_NAME = 'PublicId'";
+        var columnaExiste = await connection.ExecuteScalarAsync<int>(checkColumnSql);
+        if (columnaExiste == 0)
+        {
+            throw new InvalidOperationException(
+                "Falta la columna PublicId en la tabla Taxistas. Ejecutá primero el script Database/migraciones/001a_taxistas_publicid_agregar.sql antes de iniciar la aplicación.");
+        }
+
+        const string selectMissingSql = @"SELECT Id
+                                          FROM Taxistas
+                                          WHERE PublicId IS NULL OR TRIM(PublicId) = ''";
+        var idsSinPublicId = await connection.QueryAsync<int>(selectMissingSql);
+
+        const string updateSql = @"UPDATE Taxistas
+                                   SET PublicId = @PublicId
+                                   WHERE Id = @Id AND (PublicId IS NULL OR TRIM(PublicId) = '')";
+
+        var actualizadas = 0;
+        foreach (var id in idsSinPublicId)
+        {
+            var filas = await connection.ExecuteAsync(updateSql, new
+            {
+                Id = id,
+                PublicId = Guid.NewGuid().ToString("D")
+            });
+            actualizadas += filas;
+        }
+
+        return actualizadas;
+    }
+
     public async Task EnsurePerfilAsync(Usuario usuario)
     {
         using var connection = CreateConnection();
         const string sql = @"INSERT INTO Taxistas
-                                 (UsuarioId, NombreServicio, NombreCompleto, Telefono, FotoUrl, Vehiculo, Patente, DatosPago, Servicios)
+                                 (PublicId, UsuarioId, NombreServicio, NombreCompleto, Telefono, FotoUrl, Vehiculo, Patente, DatosPago, Servicios)
                              VALUES
-                                 (@UsuarioId, @NombreServicio, @NombreCompleto, '', @FotoUrl, '', '', '', @Servicios)
-                             ON DUPLICATE KEY UPDATE UsuarioId = VALUES(UsuarioId)";
+                                 (@PublicId, @UsuarioId, @NombreServicio, @NombreCompleto, '', @FotoUrl, '', '', '', @Servicios)
+                             ON DUPLICATE KEY UPDATE
+                                 UsuarioId = VALUES(UsuarioId),
+                                 PublicId = COALESCE(NULLIF(PublicId, ''), VALUES(PublicId))";
         await connection.ExecuteAsync(sql, new
         {
+            PublicId = Guid.NewGuid().ToString("D"),
             UsuarioId = usuario.Id,
             NombreServicio = $"{usuario.Nombre} Taxi",
             NombreCompleto = usuario.Nombre,
@@ -35,18 +76,18 @@ public class TaxistaRepository : ITaxistaRepository
         });
     }
 
-    public async Task<TaxistaPerfil?> GetPublicoAsync(int taxistaId)
+    public async Task<TaxistaPublicoDto?> GetPublicoAsync(Guid publicId)
     {
         using var connection = CreateConnection();
-        const string sql = @"SELECT Id, NombreCompleto, Telefono, FotoUrl, Vehiculo, Patente, DatosPago, Servicios
-                             FROM Taxistas WHERE Id = @TaxistaId";
-        return await connection.QuerySingleOrDefaultAsync<TaxistaPerfil>(sql, new { TaxistaId = taxistaId });
+        const string sql = @"SELECT PublicId, NombreCompleto, Telefono, FotoUrl, Vehiculo, Patente, DatosPago, Servicios
+                             FROM Taxistas WHERE PublicId = @PublicId";
+        return await connection.QuerySingleOrDefaultAsync<TaxistaPublicoDto>(sql, new { PublicId = publicId.ToString("D") });
     }
 
     public async Task<TaxistaPerfil?> GetPropioAsync(string googleId)
     {
         using var connection = CreateConnection();
-        const string sql = @"SELECT t.Id, t.NombreCompleto, t.Telefono,
+        const string sql = @"SELECT t.Id, t.PublicId, t.NombreCompleto, t.Telefono,
                                     COALESCE(NULLIF(t.FotoUrl, ''), u.FotoUrl) AS FotoUrl,
                                     t.Vehiculo, t.Patente, t.DatosPago, t.Servicios
                              FROM Taxistas t

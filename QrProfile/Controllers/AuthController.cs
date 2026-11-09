@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Mvc;
 using QrProfile.Models;
 using QrProfile.Repositories;
+using CloudinaryDotNet;
+using CloudinaryDotNet.Actions;
 
 namespace QrProfile.Controllers;
 

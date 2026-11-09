@@ -5,60 +5,105 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#f4f1e8">
     <title>Taxi Ya | Tarjeta digital del taxista</title>
+    <script>
+        // Se aplica antes de pintar la página para evitar un destello del tema equivocado.
+        (function () {
+            try {
+                var tema = localStorage.getItem('taxiya-tema');
+                if (tema === 'light' || tema === 'dark') document.documentElement.setAttribute('data-theme', tema);
+            } catch (e) { }
+        })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <style>
-        :root { color-scheme: light; --paper:#f4f1e8; --surface:#fffdf8; --ink:#202522; --muted:#737a72; --line:#e4e0d5; --lime:#c7e56b; --green:#245c45; --red:#a83327; font-family:'DM Sans',sans-serif; }
+        :root {
+            color-scheme: light;
+            --paper:#f4f1e8; --surface:#fffdf8; --ink:#202522; --muted:#737a72; --soft:#555e56; --line:#e4e0d5;
+            --panel:#e9e6dc; --photo-bg:#dce8c8; --btn-line:#9ba197; --lime:#c7e56b; --green:#245c45; --green-hover:#194b36;
+            --on-green:#ffffff; --accent:#245c45; --red:#a83327; --shadow:#20252216;
+            font-family:'DM Sans',sans-serif;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root:not([data-theme="light"]) {
+                color-scheme: dark;
+                --paper:#131715; --surface:#1b201d; --ink:#e8ebe5; --muted:#9aa39a; --soft:#bcc4bb; --line:#2c332e;
+                --panel:#1f2521; --photo-bg:#2a3a2f; --btn-line:#4c564e; --green:#2f7a58; --green-hover:#38906a;
+                --accent:#8fd0a8; --red:#f08a7e; --shadow:#00000055;
+            }
+        }
+        :root[data-theme="dark"] {
+            color-scheme: dark;
+            --paper:#131715; --surface:#1b201d; --ink:#e8ebe5; --muted:#9aa39a; --soft:#bcc4bb; --line:#2c332e;
+            --panel:#1f2521; --photo-bg:#2a3a2f; --btn-line:#4c564e; --green:#2f7a58; --green-hover:#38906a;
+            --accent:#8fd0a8; --red:#f08a7e; --shadow:#00000055;
+        }
         * { box-sizing:border-box; }
-        body { margin:0; min-height:100vh; color:var(--ink); background:var(--paper); }
-        button,input,textarea { font:inherit; }
+        body { margin:0; min-height:100vh; color:var(--ink); background:var(--paper); transition:background .2s ease,color .2s ease; }
+        button,input,textarea,select { font:inherit; }
         .topline { height:9px; background:var(--lime); }
         .shell { width:min(1040px,calc(100% - 36px)); margin:0 auto; }
-        header { display:flex; align-items:center; justify-content:space-between; padding:26px 0; border-bottom:1px solid var(--line); }
+        header { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:22px 0; border-bottom:1px solid var(--line); }
         .wordmark { display:flex; align-items:center; gap:11px; color:var(--ink); text-decoration:none; font-family:Manrope,sans-serif; font-weight:800; }
         .wordmark-mark { display:grid; width:38px; height:38px; place-items:center; border-radius:12px; background:var(--ink); color:var(--lime); font-size:19px; }
-        .eyebrow { margin:0; color:var(--muted); font-size:.76rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
-        .header-link { color:var(--ink); font-weight:700; text-decoration:none; }
+        .toolbar { display:flex; align-items:center; gap:8px; }
+        .lang-select { height:40px; padding:0 30px 0 12px; border:1px solid var(--btn-line); border-radius:7px; background:var(--surface); color:var(--ink); font-weight:700; cursor:pointer; }
+        .icon-button { display:grid; width:40px; height:40px; place-items:center; border:1px solid var(--btn-line); border-radius:7px; background:var(--surface); color:var(--ink); font-size:1.05rem; cursor:pointer; }
+        .icon-button:hover,.lang-select:hover { border-color:var(--ink); }
+        .visually-hidden { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
         main { display:grid; grid-template-columns:minmax(0,1fr) minmax(280px,370px); gap:70px; align-items:start; padding:58px 0 72px; }
         .profile { padding-top:20px; animation:rise .45s ease-out both; }
         .profile-head { display:flex; align-items:center; gap:21px; margin-bottom:25px; }
-        .profile-photo { display:grid; width:128px; height:128px; flex:0 0 128px; place-items:center; overflow:hidden; border:4px solid var(--surface); border-radius:50%; background:#dce8c8; box-shadow:0 4px 20px #20252216; color:var(--green); font-size:2.5rem; }
+        .profile-photo { display:grid; width:128px; height:128px; flex:0 0 128px; place-items:center; overflow:hidden; border:4px solid var(--surface); border-radius:50%; background:var(--photo-bg); box-shadow:0 4px 20px var(--shadow); color:var(--accent); font-size:2.5rem; }
         .profile-photo img { width:100%; height:100%; object-fit:cover; }
         .profile-head h1 { margin:8px 0; font-size:clamp(2.1rem,5vw,3.2rem); }
         .profile-phone { margin:0; color:var(--muted); font-size:1rem; }
         .vehicle { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 25px; }
         .vehicle span { display:inline-flex; align-items:center; gap:7px; padding:8px 11px; border:1px solid var(--line); border-radius:5px; background:var(--surface); font-size:.9rem; font-weight:600; }
         .payment-panel { margin-top:24px; padding-top:21px; border-top:1px solid var(--line); }
-        .payment-value { margin:10px 0 13px; color:#465149; white-space:pre-wrap; overflow-wrap:anywhere; }
+        .payment-value { margin:10px 0 13px; color:var(--soft); white-space:pre-wrap; overflow-wrap:anywhere; }
         .profile-actions { display:flex; flex-wrap:wrap; gap:10px; }
-        .profile-status { min-height:20px; margin:10px 0 0!important; color:var(--green)!important; font-size:.85rem; }
-        .profile-kicker { display:flex; align-items:center; gap:10px; color:var(--green); font-size:.83rem; font-weight:700; }
+        .profile-status { min-height:20px; margin:10px 0 0!important; color:var(--accent)!important; font-size:.85rem; }
+        .profile-status.is-error { color:var(--red)!important; }
+        .profile-kicker { display:flex; align-items:center; gap:10px; margin:0; color:var(--accent); font-size:.83rem; font-weight:700; }
         .status-dot { width:9px; height:9px; border-radius:50%; background:#56a96d; box-shadow:0 0 0 4px #56a96d22; }
         h1 { max-width:650px; margin:19px 0 16px; font:800 clamp(2.8rem,7vw,5.6rem)/.98 Manrope,sans-serif; letter-spacing:0; overflow-wrap:anywhere; }
-        .lead { max-width:570px; margin:0; color:#555e56; font-size:1.12rem; line-height:1.65; }
+        .lead { max-width:570px; margin:0; color:var(--soft); font-size:1.12rem; line-height:1.65; }
         .services { margin:39px 0 32px; padding:23px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
         .section-label { margin:0 0 17px; color:var(--muted); font-size:.76rem; font-weight:700; letter-spacing:.09em; text-transform:uppercase; }
         .service-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:13px 26px; margin:0; padding:0; list-style:none; }
         .service-list li { display:flex; align-items:flex-start; gap:10px; font-weight:600; line-height:1.4; }
-        .service-list i { color:var(--green); font-size:1rem; }
+        .service-list i { color:var(--accent); font-size:1rem; }
         .button { display:inline-flex; min-height:52px; align-items:center; justify-content:center; gap:10px; padding:0 21px; border:0; border-radius:7px; font-weight:700; text-decoration:none; cursor:pointer; transition:transform .16s ease,background .16s ease; }
         .button:hover { transform:translateY(-2px); }
-        .button-primary { background:var(--green); color:white; }
-        .button-primary:hover { background:#194b36; }
-        .button-secondary { background:transparent; border:1px solid #9ba197; color:var(--ink); }
-        .contact-panel { margin-top:38px; padding:21px 22px; background:#e9e6dc; border-radius:7px; }
-        .contact-panel p { margin:0; color:#555e56; }
+        .button-primary { background:var(--green); color:var(--on-green); }
+        .button-primary:hover { background:var(--green-hover); }
+        .button-secondary { background:transparent; border:1px solid var(--btn-line); color:var(--ink); }
+        .contact-panel { margin-top:38px; padding:21px 22px; background:var(--panel); border-radius:7px; }
+        .contact-panel p { margin:0; color:var(--soft); }
         .side { position:static; animation:rise .55s .08s ease-out both; }
         .state { grid-column:1/-1; padding:64px 12px; color:var(--muted); text-align:center; }
-        .state i { display:block; margin-bottom:12px; color:var(--green); font-size:2rem; }
+        .state i { display:block; margin-bottom:12px; color:var(--accent); font-size:2rem; }
         .side .contact-panel { margin-top:20px; }
         .side .contact-panel .button { width:100%; margin-top:10px; }
+        .side .contact-panel .profile-actions .button { margin-top:0; }
         .payment-panel .button { min-height:44px; padding:0 15px; }
-        footer { padding:19px 0 26px; border-top:1px solid var(--line); color:var(--muted); font-size:.85rem; }
+        .location-panel { margin-top:24px; padding-top:21px; border-top:1px solid var(--line); }
+        .location-panel .help { margin:0 0 13px; color:var(--soft); font-size:.92rem; line-height:1.5; }
+        .location-panel .button { width:100%; min-height:46px; }
+        .location-panel .button + .button { margin-top:10px; }
+        .mini-map { height:220px; margin:0 0 12px; overflow:hidden; border:1px solid var(--line); border-radius:7px; background:var(--panel); }
+        .mini-map[hidden] { display:none; }
+        :root[data-theme="dark"] .mini-map .leaflet-tile-pane { filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9); }
+        @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .mini-map .leaflet-tile-pane { filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9); } }
+        footer { display:flex; flex-wrap:wrap; justify-content:space-between; gap:10px; padding:19px 0 26px; border-top:1px solid var(--line); color:var(--muted); font-size:.85rem; }
+        footer a { color:var(--muted); font-weight:700; text-decoration:none; }
+        footer a:hover { color:var(--ink); }
         @keyframes rise { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
-        @media(max-width:760px) { .shell { width:min(100% - 28px,580px); } header { padding:18px 0; } main { grid-template-columns:1fr; gap:24px; padding:28px 0 43px; } .profile { padding-top:8px; } h1 { font-size:clamp(2.7rem,14vw,4rem); } .profile-head h1 { font-size:clamp(2rem,10vw,3rem); } .profile-photo { width:104px; height:104px; flex-basis:104px; } .service-list { grid-template-columns:1fr; } .profile-actions { display:grid; grid-template-columns:1fr; } }
+        @media(max-width:760px) { .shell { width:min(100% - 28px,580px); } header { padding:16px 0; } main { grid-template-columns:1fr; gap:24px; padding:28px 0 43px; } .profile { padding-top:8px; } h1 { font-size:clamp(2.7rem,14vw,4rem); } .profile-head h1 { font-size:clamp(2rem,10vw,3rem); } .profile-photo { width:104px; height:104px; flex-basis:104px; } .service-list { grid-template-columns:1fr; } .profile-actions { display:grid; grid-template-columns:1fr; } }
+        @media(max-width:380px) { .wordmark span:last-child { display:none; } }
         @media(prefers-reduced-motion:reduce) { *,*::before,*::after { animation-duration:.01ms!important; transition-duration:.01ms!important; } }
     </style>
 </head>
@@ -66,15 +111,127 @@
     <div class="topline"></div>
     <div class="shell">
         <header>
-            <a class="wordmark" href="/" aria-label="Taxi Ya, inicio"><span class="wordmark-mark"><i class="bi bi-taxi-front-fill"></i></span><span>Taxi Ya</span></a>
-            <a class="header-link" href="/api/auth/login-google">Acceso Taxistas <i class="bi bi-arrow-up-right"></i></a>
+            <a class="wordmark" href="/" aria-label="Taxi Ya"><span class="wordmark-mark"><i class="bi bi-taxi-front-fill"></i></span><span>Taxi Ya</span></a>
+            <div class="toolbar">
+                <label class="visually-hidden" for="lang-select" data-i18n="language">Idioma</label>
+                <select class="lang-select" id="lang-select">
+                    <option value="es">ES</option>
+                    <option value="en">EN</option>
+                    <option value="pt">PT</option>
+                </select>
+                <button class="icon-button" id="theme-toggle" type="button"><i class="bi bi-moon-stars"></i></button>
+            </div>
         </header>
-        <main id="perfil" aria-live="polite"><div class="state"><i class="bi bi-arrow-repeat"></i>Cargando tarjeta...</div></main>
-        <footer>Taxi Ya · Tarjeta digital para taxistas <span id="year"></span></footer>
+        <main id="perfil" aria-live="polite"><div class="state"><i class="bi bi-arrow-repeat"></i><span data-i18n="loading">Cargando tarjeta...</span></div></main>
+        <footer><span>Taxi Ya · <span data-i18n="footer">Tarjeta digital para taxistas</span> <span id="year"></span></span><a href="/api/auth/login-google"><span data-i18n="driverAccess">Acceso taxistas</span> <i class="bi bi-arrow-up-right"></i></a></footer>
     </div>
+    <script src="/js/taxiya-comun.js?v=1"></script>
     <script>
+        // ---------- Textos en cada idioma ----------
+        const I18N = {
+            es: {
+                language:'Idioma', loading:'Cargando tarjeta...', footer:'Tarjeta digital para taxistas', driverAccess:'Acceso taxistas',
+                pageTitle:'Taxi Ya | Tarjeta digital del taxista', card:'Tarjeta digital', driver:'Taxista', photoAlt:'Foto de {name}', initials:'Iniciales',
+                services:'Servicios', servicesEmpty:'Consultá directamente con el taxista.',
+                contact:'Contacto directo', whatsapp:'WhatsApp', call:'Llamar', saveContact:'Guardar contacto', contactSaved:'Contacto descargado.',
+                noPhone:'El taxista todavía no publicó un teléfono.', sideLabel:'Contacto y medios de pago',
+                payment:'Pago y transferencia', openPayment:'Abrir enlace de pago', copy:'Copiar datos', copied:'Datos copiados.', copyFail:'No se pudo copiar en este navegador.',
+                location:'Tu ubicación', locationHelp:'Mostrale al taxista dónde estás para que te encuentre más rápido.',
+                locationShow:'Ver mi ubicación', locationSend:'Enviar mi ubicación por WhatsApp', locationLoading:'Buscando tu ubicación...',
+                locationDenied:'No diste permiso para usar tu ubicación. Podés activarlo en la configuración del navegador.',
+                locationError:'No se pudo obtener tu ubicación. Probá de nuevo.', locationUnsupported:'Tu navegador no permite compartir la ubicación.',
+                mapError:'No se pudo cargar el mapa, pero igual podés enviar tu ubicación.',
+                waGreeting:'Hola {name}, te escribo desde tu tarjeta de Taxi Ya.', waLocation:'Hola {name}, te escribo desde tu tarjeta de Taxi Ya. Estoy acá: {url}',
+                notFound:'No se encontró esta tarjeta.', loadError:'No se pudo cargar el perfil.', noId:'No se encontró el identificador de esta tarjeta.',
+                themeDark:'Activar modo oscuro', themeLight:'Activar modo claro'
+            },
+            en: {
+                language:'Language', loading:'Loading card...', footer:'Digital card for taxi drivers', driverAccess:'Driver login',
+                pageTitle:'Taxi Ya | Taxi driver digital card', card:'Digital card', driver:'Taxi driver', photoAlt:'Photo of {name}', initials:'Initials',
+                services:'Services', servicesEmpty:'Ask the driver directly.',
+                contact:'Contact the driver', whatsapp:'WhatsApp', call:'Call', saveContact:'Save contact', contactSaved:'Contact downloaded.',
+                noPhone:'The driver has not added a phone number yet.', sideLabel:'Contact and payment',
+                payment:'Payment', openPayment:'Open payment link', copy:'Copy details', copied:'Details copied.', copyFail:'Could not copy in this browser.',
+                location:'Your location', locationHelp:'Show the driver where you are so they can find you faster.',
+                locationShow:'Show my location', locationSend:'Send my location on WhatsApp', locationLoading:'Finding your location...',
+                locationDenied:'Location permission was denied. You can enable it in your browser settings.',
+                locationError:'Could not get your location. Please try again.', locationUnsupported:'Your browser does not support location sharing.',
+                mapError:'The map could not be loaded, but you can still send your location.',
+                waGreeting:'Hi {name}, I got your contact from your Taxi Ya card.', waLocation:'Hi {name}, I got your contact from your Taxi Ya card. I am here: {url}',
+                notFound:'This card was not found.', loadError:'The profile could not be loaded.', noId:'This card has no valid identifier.',
+                themeDark:'Switch to dark mode', themeLight:'Switch to light mode'
+            },
+            pt: {
+                language:'Idioma', loading:'Carregando cartão...', footer:'Cartão digital para taxistas', driverAccess:'Acesso de taxistas',
+                pageTitle:'Taxi Ya | Cartão digital do taxista', card:'Cartão digital', driver:'Taxista', photoAlt:'Foto de {name}', initials:'Iniciais',
+                services:'Serviços', servicesEmpty:'Consulte diretamente o taxista.',
+                contact:'Contato direto', whatsapp:'WhatsApp', call:'Ligar', saveContact:'Salvar contato', contactSaved:'Contato baixado.',
+                noPhone:'O taxista ainda não publicou um telefone.', sideLabel:'Contato e formas de pagamento',
+                payment:'Pagamento e transferência', openPayment:'Abrir link de pagamento', copy:'Copiar dados', copied:'Dados copiados.', copyFail:'Não foi possível copiar neste navegador.',
+                location:'Sua localização', locationHelp:'Mostre ao taxista onde você está para que ele te encontre mais rápido.',
+                locationShow:'Ver minha localização', locationSend:'Enviar minha localização pelo WhatsApp', locationLoading:'Buscando sua localização...',
+                locationDenied:'Você não permitiu o uso da localização. Pode ativar nas configurações do navegador.',
+                locationError:'Não foi possível obter sua localização. Tente novamente.', locationUnsupported:'Seu navegador não permite compartilhar a localização.',
+                mapError:'Não foi possível carregar o mapa, mas você ainda pode enviar sua localização.',
+                waGreeting:'Olá {name}, peguei seu contato no seu cartão do Taxi Ya.', waLocation:'Olá {name}, peguei seu contato no seu cartão do Taxi Ya. Estou aqui: {url}',
+                notFound:'Este cartão não foi encontrado.', loadError:'Não foi possível carregar o perfil.', noId:'Este cartão não tem um identificador válido.',
+                themeDark:'Ativar modo escuro', themeLight:'Ativar modo claro'
+            }
+        };
+        const SUPPORTED = Object.keys(I18N);
+
+        function storageGet(key) { try { return localStorage.getItem(key); } catch { return null; } }
+        function storageSet(key, value) { try { localStorage.setItem(key, value); } catch { } }
+
+        // Idioma guardado; si no hay, el del celular; si no es ES/PT, inglés (pensado para turistas).
+        function detectLang() {
+            const saved = storageGet('taxiya-idioma');
+            if (SUPPORTED.includes(saved)) return saved;
+            for (const tag of navigator.languages || [navigator.language || '']) {
+                const code = String(tag).slice(0, 2).toLowerCase();
+                if (SUPPORTED.includes(code)) return code;
+            }
+            return 'en';
+        }
+        let lang = detectLang();
+        function t(key, vars = {}) {
+            const text = I18N[lang][key] ?? I18N.es[key] ?? key;
+            return text.replace(/\{(\w+)\}/g, (_, name) => vars[name] ?? '');
+        }
+
+        // ---------- Estado ----------
         const perfilNode = document.getElementById('perfil');
+        const langSelect = document.getElementById('lang-select');
+        const themeToggle = document.getElementById('theme-toggle');
         document.getElementById('year').textContent = new Date().getFullYear();
+        let currentProfile = null;
+        let currentError = null;   // clave i18n del último error de carga
+        let userLocation = null;   // { lat, lng, accuracy }
+        let map = null;
+
+        // ---------- Tema claro / oscuro ----------
+        const darkQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        function isDark() {
+            const forced = document.documentElement.getAttribute('data-theme');
+            return forced ? forced === 'dark' : darkQuery.matches;
+        }
+        function updateThemeUi() {
+            const dark = isDark();
+            themeToggle.innerHTML = `<i class="bi ${dark ? 'bi-sun' : 'bi-moon-stars'}"></i>`;
+            const label = dark ? t('themeLight') : t('themeDark');
+            themeToggle.setAttribute('aria-label', label);
+            themeToggle.title = label;
+            document.querySelector('meta[name="theme-color"]').content = dark ? '#131715' : '#f4f1e8';
+        }
+        themeToggle.addEventListener('click', () => {
+            const next = isDark() ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            storageSet('taxiya-tema', next);
+            updateThemeUi();
+        });
+        darkQuery.addEventListener?.('change', updateThemeUi);
+
+        // ---------- Utilidades ----------
         function escapeHtml(value) { return String(value ?? '').replace(/[&<>"']/g, char => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[char]); }
         function safeWebUrl(value) {
             try {
@@ -83,54 +240,162 @@
             } catch { return ''; }
         }
         function escapeVCard(value) { return String(value ?? '').replace(/\\/g, '\\\\').replace(/\n/g, '\\n').replace(/[,;]/g, '\\$&'); }
+        function firstName(name) { return String(name || '').trim().split(/\s+/)[0] || ''; }
+        function whatsappUrl(digits, text) { return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`; }
+        function mapsUrl(loc) { return `https://www.google.com/maps?q=${loc.lat.toFixed(6)},${loc.lng.toFixed(6)}`; }
+        function setStatus(id, text, isError = false) {
+            const node = document.getElementById(id);
+            if (!node) return;
+            node.textContent = text;
+            node.classList.toggle('is-error', isError);
+        }
+
+        // ---------- Textos fijos fuera de la tarjeta ----------
+        function applyStaticTexts() {
+            document.documentElement.lang = lang;
+            document.title = currentProfile?.nombreCompleto ? `${currentProfile.nombreCompleto} | Taxi Ya` : t('pageTitle');
+            document.querySelectorAll('[data-i18n]').forEach(node => { node.textContent = t(node.dataset.i18n); });
+            langSelect.value = lang;
+            updateThemeUi();
+        }
+
+        // ---------- Tarjeta ----------
         function render(profile) {
-            const name = profile.nombreCompleto || 'Taxista';
+            if (map) { map.remove(); map = null; }
+            const name = profile.nombreCompleto || t('driver');
             const phone = profile.telefono || '';
             const phoneDigits = phone.replace(/\D/g, '');
             const photoUrl = safeWebUrl(profile.fotoUrl || '');
-            const services = (profile.servicios || '').split(/[,;\n]/).map(item => item.trim()).filter(Boolean);
-            const serviceItems = services.map(service => `<li><i class="bi bi-check-circle-fill"></i><span>${escapeHtml(service)}</span></li>`).join('');
+            // Los servicios del catálogo se muestran traducidos; los escritos a mano, tal cual.
+            const seen = new Set();
+            const services = TaxiYa.separarServicios(profile.servicios).map(text => {
+                const item = TaxiYa.buscarServicio(text);
+                return { label: item ? item[lang] : text, icon: item ? item.icon : 'bi-check-circle-fill' };
+            }).filter(service => !seen.has(service.label) && seen.add(service.label));
+            const serviceItems = services.map(service => `<li><i class="bi ${service.icon}"></i><span>${escapeHtml(service.label)}</span></li>`).join('');
+            const phoneDisplay = TaxiYa.formatearTelefono(phone);
             const payment = (profile.datosPago || '').trim();
             const paymentUrl = safeWebUrl(payment);
             const initials = name.trim().split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase();
+            const greeting = t('waGreeting', { name: firstName(name) });
             perfilNode.innerHTML = `
                 <section class="profile" aria-labelledby="profile-name">
-                    <div class="profile-head"><div class="profile-photo">${photoUrl ? `<img src="${escapeHtml(photoUrl)}" alt="Foto de ${escapeHtml(name)}">` : `<span aria-label="Iniciales">${escapeHtml(initials)}</span>`}</div>
-                        <div><p class="profile-kicker"><span class="status-dot"></span> Tarjeta digital</p><h1 id="profile-name">${escapeHtml(name)}</h1>${phone ? `<p class="profile-phone">${escapeHtml(phone)}</p>` : ''}</div>
+                    <div class="profile-head"><div class="profile-photo">${photoUrl ? `<img src="${escapeHtml(photoUrl)}" alt="${escapeHtml(t('photoAlt', { name }))}">` : `<span aria-label="${escapeHtml(t('initials'))}">${escapeHtml(initials)}</span>`}</div>
+                        <div><p class="profile-kicker"><span class="status-dot"></span> ${escapeHtml(t('card'))}</p><h1 id="profile-name">${escapeHtml(name)}</h1>${phone ? `<p class="profile-phone">${escapeHtml(phoneDisplay)}</p>` : ''}</div>
                     </div>
                     ${profile.vehiculo || profile.patente ? `<div class="vehicle">${profile.vehiculo ? `<span><i class="bi bi-car-front"></i>${escapeHtml(profile.vehiculo)}</span>` : ''}${profile.patente ? `<span><i class="bi bi-card-text"></i>${escapeHtml(profile.patente)}</span>` : ''}</div>` : ''}
-                    <div class="services"><p class="section-label">Servicios</p>${serviceItems ? `<ul class="service-list">${serviceItems}</ul>` : '<p class="lead">Consultá directamente con el taxista.</p>'}</div>
+                    <div class="services"><p class="section-label">${escapeHtml(t('services'))}</p>${serviceItems ? `<ul class="service-list">${serviceItems}</ul>` : `<p class="lead">${escapeHtml(t('servicesEmpty'))}</p>`}</div>
                 </section>
-                <aside class="side" aria-label="Contacto y medios de pago">
-                    <section class="contact-panel"><p class="section-label">Contacto directo</p>${phoneDigits ? `<div class="profile-actions"><a class="button button-primary" href="https://wa.me/${phoneDigits}" target="_blank" rel="noopener"><i class="bi bi-whatsapp"></i>WhatsApp</a><a class="button button-secondary" href="tel:${escapeHtml(phone.replace(/[^\d+]/g, ''))}"><i class="bi bi-telephone"></i>Llamar</a><button class="button button-secondary" id="save-contact" type="button"><i class="bi bi-person-plus"></i>Guardar contacto</button></div>` : '<p>El taxista todavía no publicó un teléfono.</p>'}<p id="contact-status" class="profile-status" role="status"></p></section>
-                    ${payment ? `<section class="payment-panel"><p class="section-label">Pago y transferencia</p>${paymentUrl ? `<a class="button button-primary" href="${escapeHtml(paymentUrl)}" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right"></i>Abrir enlace de pago</a>` : `<p class="payment-value" id="payment-value">${escapeHtml(payment)}</p><button class="button button-secondary" id="copy-payment" type="button"><i class="bi bi-copy"></i>Copiar datos</button>`}<p id="payment-status" class="profile-status" role="status"></p></section>` : ''}
+                <aside class="side" aria-label="${escapeHtml(t('sideLabel'))}">
+                    <section class="contact-panel"><p class="section-label">${escapeHtml(t('contact'))}</p>${phoneDigits ? `<div class="profile-actions"><a class="button button-primary" href="${escapeHtml(whatsappUrl(phoneDigits, greeting))}" target="_blank" rel="noopener"><i class="bi bi-whatsapp"></i>${escapeHtml(t('whatsapp'))}</a><a class="button button-secondary" href="tel:${escapeHtml(phone.replace(/[^\d+]/g, ''))}"><i class="bi bi-telephone"></i>${escapeHtml(t('call'))}</a><button class="button button-secondary" id="save-contact" type="button"><i class="bi bi-person-plus"></i>${escapeHtml(t('saveContact'))}</button></div>` : `<p>${escapeHtml(t('noPhone'))}</p>`}<p id="contact-status" class="profile-status" role="status"></p></section>
+                    ${phoneDigits ? `<section class="location-panel"><p class="section-label">${escapeHtml(t('location'))}</p><p class="help">${escapeHtml(t('locationHelp'))}</p><div class="mini-map" id="mini-map" hidden></div><button class="button button-secondary" id="show-location" type="button"><i class="bi bi-geo-alt"></i>${escapeHtml(t('locationShow'))}</button><a class="button button-primary" id="send-location" href="#" target="_blank" rel="noopener" hidden><i class="bi bi-send"></i>${escapeHtml(t('locationSend'))}</a><p id="location-status" class="profile-status" role="status"></p></section>` : ''}
+                    ${payment ? `<section class="payment-panel"><p class="section-label">${escapeHtml(t('payment'))}</p>${paymentUrl ? `<a class="button button-primary" href="${escapeHtml(paymentUrl)}" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right"></i>${escapeHtml(t('openPayment'))}</a>` : `<p class="payment-value" id="payment-value">${escapeHtml(payment)}</p><button class="button button-secondary" id="copy-payment" type="button"><i class="bi bi-copy"></i>${escapeHtml(t('copy'))}</button>`}<p id="payment-status" class="profile-status" role="status"></p></section>` : ''}
                 </aside>`;
             document.getElementById('save-contact')?.addEventListener('click', () => {
-                const vcard = ['BEGIN:VCARD', 'VERSION:3.0', `FN:${escapeVCard(name)}`, `TEL;TYPE=CELL:${escapeVCard(phone)}`, 'END:VCARD'].join('\r\n');
+                const vcard = ['BEGIN:VCARD', 'VERSION:3.0', `FN:${escapeVCard(name)}`, `TEL;TYPE=CELL:${escapeVCard(phone)}`, 'NOTE:Taxi Ya', 'END:VCARD'].join('\r\n');
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(new Blob([vcard], { type:'text/vcard;charset=utf-8' }));
                 link.download = `${name.trim().replace(/[^\p{L}\p{N}-]+/gu, '-') || 'taxista'}.vcf`;
                 link.click();
-                URL.revokeObjectURL(link.href);
-                document.getElementById('contact-status').textContent = 'Contacto descargado.';
+                setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+                setStatus('contact-status', t('contactSaved'));
             });
             document.getElementById('copy-payment')?.addEventListener('click', async () => {
                 try {
                     await navigator.clipboard.writeText(payment);
-                    document.getElementById('payment-status').textContent = 'Datos copiados.';
+                    setStatus('payment-status', t('copied'));
                 } catch {
-                    document.getElementById('payment-status').textContent = 'No se pudo copiar en este navegador.';
+                    setStatus('payment-status', t('copyFail'), true);
                 }
             });
+            document.getElementById('show-location')?.addEventListener('click', () => requestLocation(phoneDigits, name));
+            if (userLocation) showLocation(phoneDigits, name);
+        }
+
+        // ---------- Ubicación del pasajero y mini mapa ----------
+        // Leaflet se descarga recién cuando el pasajero pide ver su ubicación, para que la tarjeta cargue rápido.
+        let leafletPromise = null;
+        function loadLeaflet() {
+            if (window.L) return Promise.resolve(window.L);
+            leafletPromise ??= new Promise((resolve, reject) => {
+                const css = document.createElement('link');
+                css.rel = 'stylesheet';
+                css.href = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
+                document.head.appendChild(css);
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
+                script.onload = () => resolve(window.L);
+                script.onerror = () => { leafletPromise = null; reject(new Error('leaflet')); };
+                document.head.appendChild(script);
+            });
+            return leafletPromise;
+        }
+        function requestLocation(phoneDigits, name) {
+            if (!('geolocation' in navigator)) { setStatus('location-status', t('locationUnsupported'), true); return; }
+            setStatus('location-status', t('locationLoading'));
+            navigator.geolocation.getCurrentPosition(position => {
+                userLocation = { lat: position.coords.latitude, lng: position.coords.longitude, accuracy: position.coords.accuracy };
+                showLocation(phoneDigits, name);
+            }, error => {
+                setStatus('location-status', error.code === error.PERMISSION_DENIED ? t('locationDenied') : t('locationError'), true);
+            }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 });
+        }
+        async function showLocation(phoneDigits, name) {
+            const sendLink = document.getElementById('send-location');
+            const showButton = document.getElementById('show-location');
+            if (!sendLink || !userLocation) return;
+            sendLink.href = whatsappUrl(phoneDigits, t('waLocation', { name: firstName(name), url: mapsUrl(userLocation) }));
+            sendLink.hidden = false;
+            showButton.innerHTML = `<i class="bi bi-arrow-clockwise"></i>${escapeHtml(t('locationShow'))}`;
+            setStatus('location-status', '');
+            try {
+                const L = await loadLeaflet();
+                const mapNode = document.getElementById('mini-map');
+                if (!mapNode) return;
+                mapNode.hidden = false;
+                if (map) map.remove();
+                const point = [userLocation.lat, userLocation.lng];
+                map = L.map(mapNode, { zoomControl: false, attributionControl: true }).setView(point, 16);
+                L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>'
+                }).addTo(map);
+                if (userLocation.accuracy) L.circle(point, { radius: Math.min(userLocation.accuracy, 500), color: '#2f7a58', weight: 1, fillOpacity: .12 }).addTo(map);
+                L.circleMarker(point, { radius: 8, color: '#ffffff', weight: 3, fillColor: '#2f7a58', fillOpacity: 1 }).addTo(map);
+            } catch {
+                setStatus('location-status', t('mapError'), true);
+            }
+        }
+
+        // ---------- Carga ----------
+        function renderError() {
+            perfilNode.innerHTML = `<div class="state"><i class="bi bi-exclamation-circle"></i>${escapeHtml(t(currentError))}</div>`;
         }
         async function loadProfile() {
-            const routeId = window.location.pathname.match(/^\/perfil\/(\d+)\/?$/)?.[1];
-            if (!routeId) throw new Error('No se encontró el identificador de esta tarjeta.');
-            const response = await fetch(`/api/taxistas/${routeId}`);
-            if (!response.ok) throw new Error(response.status === 404 ? 'No se encontró esta tarjeta.' : 'No se pudo cargar el perfil.');
-            render(await response.json());
+            const routeId = window.location.pathname.match(/^\/perfil\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\/?$/i)?.[1];
+            if (!routeId) { currentError = 'noId'; return renderError(); }
+            try {
+                const response = await fetch(`/api/taxistas/${routeId}`);
+                if (!response.ok) { currentError = response.status === 404 ? 'notFound' : 'loadError'; return renderError(); }
+                currentProfile = await response.json();
+                applyStaticTexts();
+                render(currentProfile);
+            } catch {
+                currentError = 'loadError';
+                renderError();
+            }
         }
-        loadProfile().catch(error => { perfilNode.innerHTML = `<div class="state"><i class="bi bi-exclamation-circle"></i>${escapeHtml(error.message)}</div>`; });
+
+        langSelect.addEventListener('change', () => {
+            lang = SUPPORTED.includes(langSelect.value) ? langSelect.value : 'es';
+            storageSet('taxiya-idioma', lang);
+            applyStaticTexts();
+            if (currentProfile) render(currentProfile);
+            else if (currentError) renderError();
+        });
+
+        applyStaticTexts();
+        loadProfile();
     </script>
 </body>
 </html>

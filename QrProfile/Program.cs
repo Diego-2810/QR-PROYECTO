@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Authentication.OAuth.Claims;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 var googleAuth = builder.Configuration.GetSection("Authentication:Google");
@@ -59,6 +62,26 @@ if (trustForwardedHeaders)
     });
 }
 
+// Claves de la cookie de sesión guardadas en la base (ver MySqlXmlRepository).
+builder.Services.AddDataProtection().SetApplicationName("TaxiYa");
+builder.Services.Configure<KeyManagementOptions>(options =>
+    options.XmlRepository = new MySqlXmlRepository(connectionString));
+
+// /health: Render lo consulta para saber si la app está viva y conectada a la base.
+builder.Services.AddHealthChecks().AddAsyncCheck("base-de-datos", async cancellationToken =>
+{
+    try
+    {
+        await using var connection = new MySqlConnection(connectionString);
+        await connection.OpenAsync(cancellationToken);
+        return HealthCheckResult.Healthy();
+    }
+    catch (Exception exception)
+    {
+        return HealthCheckResult.Unhealthy("Sin conexión a la base de datos.", exception);
+    }
+});
+
 builder.Services.AddScoped<IProfileRepository, ProfileRepository>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
@@ -96,6 +119,24 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
+await MySqlXmlRepository.VerificarTablaAsync(connectionString);
+
+var cloudinary = app.Configuration.GetSection("Cloudinary");
+if (new[] { "CloudName", "ApiKey", "ApiSecret" }.Any(clave => string.IsNullOrWhiteSpace(cloudinary[clave])))
+{
+    app.Logger.LogWarning(
+        "Cloudinary no está configurado (Cloudinary__CloudName, Cloudinary__ApiKey, Cloudinary__ApiSecret). La app funciona, pero los taxistas no van a poder subir fotos.");
+}
+
+using (var scope = app.Services.CreateScope())
+{
+    var taxistaRepository = scope.ServiceProvider.GetRequiredService<ITaxistaRepository>();
+    var filasActualizadas = await taxistaRepository.RellenarPublicIdsFaltantesAsync();
+    app.Logger.LogInformation(
+        "Verificación inicial de PublicId completada. Filas actualizadas: {FilasActualizadas}.",
+        filasActualizadas);
+}
+
 if (trustForwardedHeaders)
 {
     app.UseForwardedHeaders();
@@ -109,11 +150,19 @@ var publicPagePath = Path.Combine(app.Environment.WebRootPath!, "index.html");
 var homePagePath = Path.Combine(app.Environment.ContentRootPath, "Views", "inicio.html");
 var adminPagePath = Path.Combine(app.Environment.ContentRootPath, "Views", "administracion.html");
 
-app.MapGet("/", () => Results.File(homePagePath, "text/html"));
-app.MapGet("/perfil/{taxistaId:int}", () => Results.File(publicPagePath, "text/html"));
-app.MapGet("/admin", () => Results.File(adminPagePath, "text/html"))
+// "no-cache" obliga al navegador a revalidar el HTML, así después de cada despliegue
+// nadie se queda con una versión vieja de las páginas.
+static IResult PaginaHtml(HttpContext context, string path)
+{
+    context.Response.Headers.CacheControl = "no-cache";
+    return Results.File(path, "text/html; charset=utf-8");
+}
+
+app.MapGet("/", (HttpContext context) => PaginaHtml(context, homePagePath));
+app.MapGet("/perfil/{publicId:guid}", (HttpContext context) => PaginaHtml(context, publicPagePath));
+app.MapGet("/admin", (HttpContext context) => PaginaHtml(context, adminPagePath))
     .RequireAuthorization();
-app.MapGet("/panel", () => Results.File(adminPagePath, "text/html"))
+app.MapGet("/panel", (HttpContext context) => PaginaHtml(context, adminPagePath))
     .RequireAuthorization();
 
 // Endpoint de la API
@@ -123,6 +172,7 @@ app.MapGet("/api/profile/{lang}", async (string lang, IProfileService profileSer
     return profile is not null ? Results.Ok(profile) : Results.NotFound("Profile not found for this language.");
 });
 
+app.MapHealthChecks("/health");
 app.MapControllers();
-    
+
 app.Run();
