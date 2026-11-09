@@ -88,7 +88,8 @@ public class TaxistasController : ControllerBase
         // Mismos Trim() que AdministracionController; los opcionales vacíos se guardan como '' (columnas NOT NULL DEFAULT '').
         // Las validaciones de ActualizarTaxistaRequest ya las aplicó [ApiController] antes de entrar al método.
         modeloActual.NombreCompleto = modeloActual.NombreCompleto.Trim();
-        modeloActual.Telefono = modeloActual.Telefono.Trim();
+        // [TelefonoInternacional] ya validó el formato; acá se guarda normalizado (+5491112345678).
+        modeloActual.Telefono = TelefonoInternacional.Normalizar(modeloActual.Telefono)!;
         modeloActual.FotoUrl = modeloActual.FotoUrl?.Trim();
         modeloActual.Vehiculo = modeloActual.Vehiculo?.Trim() ?? string.Empty;
         modeloActual.Patente = modeloActual.Patente?.Trim() ?? string.Empty;

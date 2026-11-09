@@ -7,7 +7,7 @@ public class ActualizarTaxistaRequest
     [Required, StringLength(120, MinimumLength = 2)]
     public string NombreCompleto { get; set; } = string.Empty;
 
-    [Required, StringLength(40, MinimumLength = 6)]
+    [Required, StringLength(40, MinimumLength = 6), TelefonoInternacional]
     public string Telefono { get; set; } = string.Empty;
 
     [StringLength(2048)]

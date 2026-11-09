@@ -43,7 +43,7 @@ public class AdministracionController : ControllerBase
         }
 
         request.NombreCompleto = request.NombreCompleto.Trim();
-        request.Telefono = request.Telefono.Trim();
+        request.Telefono = TelefonoInternacional.Normalizar(request.Telefono)!;
         request.FotoUrl = request.FotoUrl?.Trim();
         request.Vehiculo = request.Vehiculo?.Trim() ?? string.Empty;
         request.Patente = request.Patente?.Trim() ?? string.Empty;

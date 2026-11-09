@@ -65,7 +65,7 @@
                 <section class="section profile-section" aria-labelledby="profile-title"><div class="section-head"><h2 id="profile-title">Datos del servicio</h2><span class="count">Visible en tu tarjeta pública</span></div>
                     <form id="profile-form" enctype="multipart/form-data"><div class="form-grid">
                         <div class="field-full"><label for="nombreCompleto">Nombre completo</label><input id="nombreCompleto" name="nombreCompleto" maxlength="120" required autocomplete="name" placeholder="Nombre y apellido"></div>
-                        <div><label for="telefono">Teléfono / WhatsApp</label><input id="telefono" name="telefono" type="tel" maxlength="40" required autocomplete="tel" placeholder="Código de país y número"></div>
+                        <div><label for="telefono">Teléfono / WhatsApp</label><input id="telefono" name="telefono" type="tel" maxlength="40" required autocomplete="tel" inputmode="tel" placeholder="+54 9 11 1234 5678" pattern="\s*(\+|00)\s*[1-9][\d\s\-\(\)\.]{7,}" title="Ingresá el teléfono con código de país, por ejemplo +54 9 11 1234 5678." aria-describedby="phone-help"><p class="field-help" id="phone-help">Con código de país, para que los pasajeros extranjeros puedan escribirte. Celular de Argentina: +54 9 y el número con característica.</p></div>
                         <div><label for="ArchivoFoto">Foto de perfil</label><input type="file" id="ArchivoFoto" name="ArchivoFoto" accept="image/*" class="form-control" /><input type="hidden" id="fotoUrl" name="fotoUrl"></div>
                         <div class="field-full photo-preview"><img id="photo-preview" alt="Vista previa de foto" hidden><span class="field-help">Elegí una foto de tu galería o sacá una con la cámara. Si no elegís ninguna, se mantiene la actual.</span></div>
                         <div><label for="vehiculo">Vehículo</label><input id="vehiculo" name="vehiculo" maxlength="120" placeholder="Marca, modelo y color"></div>
@@ -92,13 +92,39 @@
         async function api(url, options = {}) {
             const response = await fetch(url, { credentials:'same-origin', ...options, headers:{ ...(options.body && !(options.body instanceof FormData) ? {'Content-Type':'application/json'} : {}), ...options.headers } });
             if (response.status === 401 || response.status === 403) { window.location.assign('/api/auth/login-google'); throw new Error('La sesión expiró.'); }
-            if (!response.ok) throw new Error((await response.text()) || 'Ocurrió un error al consultar el servicio.');
+            if (!response.ok) throw new Error(await errorMessage(response));
             return response.status === 204 ? null : response.json();
+        }
+        async function errorMessage(response) {
+            const text = await response.text();
+            try {
+                const problem = JSON.parse(text);
+                const messages = Object.values(problem.errors || {}).flat();
+                return messages.length ? messages.join(' ') : (problem.title || text);
+            } catch { return text || 'Ocurrió un error al consultar el servicio.'; }
+        }
+        // Misma regla que TelefonoInternacional.Normalizar en el servidor.
+        function normalizePhone(value) {
+            let clean = String(value ?? '').trim().replace(/[\s\-().]/g, '');
+            if (clean.startsWith('00')) clean = '+' + clean.slice(2);
+            return /^\+[1-9]\d{7,14}$/.test(clean) ? clean : null;
+        }
+        const phoneHelpDefault = document.getElementById('phone-help').textContent;
+        function updatePhoneHelp() {
+            const help = document.getElementById('phone-help');
+            const value = document.getElementById('telefono').value;
+            const normalized = normalizePhone(value);
+            let warning = '';
+            if (value.trim() && !normalized) warning = 'Falta el código de país. Ejemplo: +54 9 11 1234 5678. Sin él, el botón de WhatsApp de tu tarjeta le escribe a otro número.';
+            else if (normalized?.startsWith('+54') && !normalized.startsWith('+549')) warning = 'Si es un celular de Argentina, agregá un 9 después de +54 para que funcione WhatsApp.';
+            help.textContent = warning || phoneHelpDefault;
+            help.style.color = warning ? 'var(--red)' : '';
         }
         async function loadProfile() {
             currentProfile = await api('/api/administracion/perfil');
             profileFields.forEach(field => { document.getElementById(field).value = currentProfile[field] || ''; });
             updatePhotoPreview();
+            updatePhoneHelp();
             const publicUrl = new URL(`/perfil/${currentProfile.publicId}`, window.location.origin).href;
             document.getElementById('public-link').href = publicUrl;
             document.getElementById('qr-url').textContent = publicUrl;
@@ -121,6 +147,7 @@
             catch (error) { status.textContent = error.message; }
         });
         document.getElementById('fotoUrl').addEventListener('input', updatePhotoPreview);
+        document.getElementById('telefono').addEventListener('input', updatePhoneHelp);
         document.getElementById('ArchivoFoto').addEventListener('change', event => {
             const file = event.target.files[0]; const preview = document.getElementById('photo-preview');
             if (!file) { updatePhotoPreview(); return; }

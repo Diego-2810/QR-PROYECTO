@@ -118,11 +118,19 @@ var publicPagePath = Path.Combine(app.Environment.WebRootPath!, "index.html");
 var homePagePath = Path.Combine(app.Environment.ContentRootPath, "Views", "inicio.html");
 var adminPagePath = Path.Combine(app.Environment.ContentRootPath, "Views", "administracion.html");
 
-app.MapGet("/", () => Results.File(homePagePath, "text/html"));
-app.MapGet("/perfil/{publicId:guid}", () => Results.File(publicPagePath, "text/html"));
-app.MapGet("/admin", () => Results.File(adminPagePath, "text/html"))
+// "no-cache" obliga al navegador a revalidar el HTML, así después de cada despliegue
+// nadie se queda con una versión vieja de las páginas.
+static IResult PaginaHtml(HttpContext context, string path)
+{
+    context.Response.Headers.CacheControl = "no-cache";
+    return Results.File(path, "text/html; charset=utf-8");
+}
+
+app.MapGet("/", (HttpContext context) => PaginaHtml(context, homePagePath));
+app.MapGet("/perfil/{publicId:guid}", (HttpContext context) => PaginaHtml(context, publicPagePath));
+app.MapGet("/admin", (HttpContext context) => PaginaHtml(context, adminPagePath))
     .RequireAuthorization();
-app.MapGet("/panel", () => Results.File(adminPagePath, "text/html"))
+app.MapGet("/panel", (HttpContext context) => PaginaHtml(context, adminPagePath))
     .RequireAuthorization();
 
 // Endpoint de la API
