@@ -2,7 +2,7 @@ namespace QrProfile.Models;
 
 public class TaxistaPublicoDto
 {
-    public string PublicId { get; set; } = string.Empty;
+    public Guid PublicId { get; set; }
     public string NombreCompleto { get; set; } = string.Empty;
     public string Telefono { get; set; } = string.Empty;
     public string? FotoUrl { get; set; }
