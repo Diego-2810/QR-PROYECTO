@@ -1,4 +1,4 @@
-# Guía para publicar Taxi Ya en Render
+# Guía para publicar TarjeTaxi en Render
 
 Paso a paso para subir la aplicación con una cuenta propia. Ninguna clave va escrita
 en el repositorio: todas se cargan como variables de entorno en Render.

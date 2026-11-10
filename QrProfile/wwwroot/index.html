@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#f4f1e8">
-    <title>Taxi Ya | Tarjeta digital del taxista</title>
+    <title>TarjeTaxi | Tarjeta digital del taxista</title>
     <script>
         // Se aplica antes de pintar la página para evitar un destello del tema equivocado.
         (function () {
@@ -144,7 +144,7 @@
     <div class="topline"></div>
     <div class="shell">
         <header>
-            <a class="wordmark" href="/" aria-label="Taxi Ya"><span class="wordmark-mark"><i class="bi bi-taxi-front-fill"></i></span><span>Taxi Ya</span></a>
+            <a class="wordmark" href="/" aria-label="TarjeTaxi"><span class="wordmark-mark"><i class="bi bi-taxi-front-fill"></i></span><span>TarjeTaxi</span></a>
             <div class="toolbar">
                 <label class="visually-hidden" for="lang-select" data-i18n="language">Idioma</label>
                 <select class="lang-select" id="lang-select">
@@ -160,7 +160,7 @@
             <div class="trips-head"><div><h2 id="trips-title" data-i18n="trips">Viajes</h2><p data-i18n="tripsIntro">Algunos de los lugares a los que este taxista llevó pasajeros.</p></div></div>
             <div class="trip-grid" id="trip-grid"></div>
         </section>
-        <footer><span>Taxi Ya · <span data-i18n="footer">Tarjeta digital para taxistas</span> <span id="year"></span></span><a href="/api/auth/login-google"><span data-i18n="driverAccess">Acceso taxistas</span> <i class="bi bi-arrow-up-right"></i></a></footer>
+        <footer><span>TarjeTaxi · <span data-i18n="footer">Tarjeta digital para taxistas</span> <span id="year"></span></span><a href="/api/auth/login-google"><span data-i18n="driverAccess">Acceso taxistas</span> <i class="bi bi-arrow-up-right"></i></a></footer>
     </div>
     <dialog class="viewer" id="viewer" aria-labelledby="viewer-title">
         <div class="viewer-inner">
@@ -175,7 +175,7 @@
         const I18N = {
             es: {
                 language:'Idioma', loading:'Cargando tarjeta...', footer:'Tarjeta digital para taxistas', driverAccess:'Acceso taxistas',
-                pageTitle:'Taxi Ya | Tarjeta digital del taxista', card:'Tarjeta digital', driver:'Taxista', photoAlt:'Foto de {name}', initials:'Iniciales',
+                pageTitle:'TarjeTaxi | Tarjeta digital del taxista', card:'Tarjeta digital', driver:'Taxista', photoAlt:'Foto de {name}', initials:'Iniciales',
                 services:'Servicios', servicesEmpty:'Consultá directamente con el taxista.',
                 contact:'Contacto directo', whatsapp:'WhatsApp', call:'Llamar', saveContact:'Guardar contacto', contactSaved:'Contacto descargado.',
                 noPhone:'El taxista todavía no publicó un teléfono.', sideLabel:'Contacto y medios de pago',
@@ -184,7 +184,7 @@
                 locationShow:'Ver mi ubicación', locationSend:'Enviar mi ubicación por WhatsApp', locationLoading:'Buscando tu ubicación...',
                 locationDenied:'No diste permiso para usar tu ubicación. Podés activarlo en la configuración del navegador.',
                 locationError:'No se pudo obtener tu ubicación. Probá de nuevo.', locationUnsupported:'Tu navegador no permite compartir la ubicación.',
-                waGreeting:'Hola {name}, te escribo desde tu tarjeta de Taxi Ya.', waLocation:'Hola {name}, te escribo desde tu tarjeta de Taxi Ya. Estoy acá: {url}',
+                waGreeting:'Hola {name}, te escribo desde tu TarjeTaxi.', waLocation:'Hola {name}, te escribo desde tu TarjeTaxi. Estoy acá: {url}',
                 notFound:'No se encontró esta tarjeta.', loadError:'No se pudo cargar el perfil.', noId:'No se encontró el identificador de esta tarjeta.',
                 themeDark:'Activar modo oscuro', themeLight:'Activar modo claro',
                 trips:'Viajes', tripsIntro:'Algunos de los lugares a los que este taxista llevó pasajeros.', mediaOne:'1 foto o video', mediaMany:'{n} fotos y videos',
@@ -192,7 +192,7 @@
             },
             en: {
                 language:'Language', loading:'Loading card...', footer:'Digital card for taxi drivers', driverAccess:'Driver login',
-                pageTitle:'Taxi Ya | Taxi driver digital card', card:'Digital card', driver:'Taxi driver', photoAlt:'Photo of {name}', initials:'Initials',
+                pageTitle:'TarjeTaxi | Taxi driver digital card', card:'Digital card', driver:'Taxi driver', photoAlt:'Photo of {name}', initials:'Initials',
                 services:'Services', servicesEmpty:'Ask the driver directly.',
                 contact:'Contact the driver', whatsapp:'WhatsApp', call:'Call', saveContact:'Save contact', contactSaved:'Contact downloaded.',
                 noPhone:'The driver has not added a phone number yet.', sideLabel:'Contact and payment',
@@ -201,7 +201,7 @@
                 locationShow:'Show my location', locationSend:'Send my location on WhatsApp', locationLoading:'Finding your location...',
                 locationDenied:'Location permission was denied. You can enable it in your browser settings.',
                 locationError:'Could not get your location. Please try again.', locationUnsupported:'Your browser does not support location sharing.',
-                waGreeting:'Hi {name}, I got your contact from your Taxi Ya card.', waLocation:'Hi {name}, I got your contact from your Taxi Ya card. I am here: {url}',
+                waGreeting:'Hi {name}, I got your contact from your TarjeTaxi card.', waLocation:'Hi {name}, I got your contact from your TarjeTaxi card. I am here: {url}',
                 notFound:'This card was not found.', loadError:'The profile could not be loaded.', noId:'This card has no valid identifier.',
                 themeDark:'Switch to dark mode', themeLight:'Switch to light mode',
                 trips:'Trips', tripsIntro:'Some of the places this driver has taken passengers.', mediaOne:'1 photo or video', mediaMany:'{n} photos and videos',
@@ -209,7 +209,7 @@
             },
             pt: {
                 language:'Idioma', loading:'Carregando cartão...', footer:'Cartão digital para taxistas', driverAccess:'Acesso de taxistas',
-                pageTitle:'Taxi Ya | Cartão digital do taxista', card:'Cartão digital', driver:'Taxista', photoAlt:'Foto de {name}', initials:'Iniciais',
+                pageTitle:'TarjeTaxi | Cartão digital do taxista', card:'Cartão digital', driver:'Taxista', photoAlt:'Foto de {name}', initials:'Iniciais',
                 services:'Serviços', servicesEmpty:'Consulte diretamente o taxista.',
                 contact:'Contato direto', whatsapp:'WhatsApp', call:'Ligar', saveContact:'Salvar contato', contactSaved:'Contato baixado.',
                 noPhone:'O taxista ainda não publicou um telefone.', sideLabel:'Contato e formas de pagamento',
@@ -218,7 +218,7 @@
                 locationShow:'Ver minha localização', locationSend:'Enviar minha localização pelo WhatsApp', locationLoading:'Buscando sua localização...',
                 locationDenied:'Você não permitiu o uso da localização. Pode ativar nas configurações do navegador.',
                 locationError:'Não foi possível obter sua localização. Tente novamente.', locationUnsupported:'Seu navegador não permite compartilhar a localização.',
-                waGreeting:'Olá {name}, peguei seu contato no seu cartão do Taxi Ya.', waLocation:'Olá {name}, peguei seu contato no seu cartão do Taxi Ya. Estou aqui: {url}',
+                waGreeting:'Olá {name}, peguei seu contato no seu cartão do TarjeTaxi.', waLocation:'Olá {name}, peguei seu contato no seu cartão do TarjeTaxi. Estou aqui: {url}',
                 notFound:'Este cartão não foi encontrado.', loadError:'Não foi possível carregar o perfil.', noId:'Este cartão não tem um identificador válido.',
                 themeDark:'Ativar modo escuro', themeLight:'Ativar modo claro',
                 trips:'Viagens', tripsIntro:'Alguns dos lugares para onde este taxista já levou passageiros.', mediaOne:'1 foto ou vídeo', mediaMany:'{n} fotos e vídeos',
@@ -299,7 +299,7 @@
         // ---------- Textos fijos fuera de la tarjeta ----------
         function applyStaticTexts() {
             document.documentElement.lang = lang;
-            document.title = currentProfile?.nombreCompleto ? `${currentProfile.nombreCompleto} | Taxi Ya` : t('pageTitle');
+            document.title = currentProfile?.nombreCompleto ? `${currentProfile.nombreCompleto} | TarjeTaxi` : t('pageTitle');
             document.querySelectorAll('[data-i18n]').forEach(node => { node.textContent = t(node.dataset.i18n); });
             langSelect.value = lang;
             updateThemeUi();
@@ -339,7 +339,7 @@
                     ${payment ? `<section class="payment-panel"><p class="section-label">${escapeHtml(t('payment'))}</p>${paymentUrl ? `<a class="button button-primary" href="${escapeHtml(paymentUrl)}" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right"></i>${escapeHtml(t('openPayment'))}</a>` : `<p class="payment-value" id="payment-value">${escapeHtml(payment)}</p><button class="button button-secondary" id="copy-payment" type="button"><i class="bi bi-copy"></i>${escapeHtml(t('copy'))}</button>`}<p id="payment-status" class="profile-status" role="status"></p></section>` : ''}
                 </aside>`;
             document.getElementById('save-contact')?.addEventListener('click', () => {
-                const vcard = ['BEGIN:VCARD', 'VERSION:3.0', `N:${escapeVCard(profile.apellido || '')};${escapeVCard(profile.nombre || name)};;;`, `FN:${escapeVCard(name)}`, `TEL;TYPE=CELL:${escapeVCard(phone)}`, 'NOTE:Taxi Ya', 'END:VCARD'].join('\r\n');
+                const vcard = ['BEGIN:VCARD', 'VERSION:3.0', `N:${escapeVCard(profile.apellido || '')};${escapeVCard(profile.nombre || name)};;;`, `FN:${escapeVCard(name)}`, `TEL;TYPE=CELL:${escapeVCard(phone)}`, 'NOTE:TarjeTaxi', 'END:VCARD'].join('\r\n');
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(new Blob([vcard], { type:'text/vcard;charset=utf-8' }));
                 link.download = `${name.trim().replace(/[^\p{L}\p{N}-]+/gu, '-') || 'taxista'}.vcf`;
