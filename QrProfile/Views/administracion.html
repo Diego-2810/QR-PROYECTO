@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#202522">
-    <title>Mi tarjeta digital | Taxi Ya</title>
+    <title>Mi tarjeta digital | TarjeTaxi</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -93,7 +93,7 @@
     </style>
 </head>
 <body>
-    <div class="topbar"><div class="bar-inner"><div class="brand"><span class="brand-icon"><i class="bi bi-taxi-front-fill"></i></span> Taxi Ya · Mi tarjeta</div><nav class="bar-actions" aria-label="Acciones de administración"><a href="/perfil/" id="public-link"><i class="bi bi-box-arrow-up-right"></i> Ver tarjeta</a><button id="logout-button" type="button"><i class="bi bi-box-arrow-right"></i> Salir</button></nav></div></div>
+    <div class="topbar"><div class="bar-inner"><div class="brand"><span class="brand-icon"><i class="bi bi-taxi-front-fill"></i></span> TarjeTaxi · Mi tarjeta</div><nav class="bar-actions" aria-label="Acciones de administración"><a href="/perfil/" id="public-link"><i class="bi bi-box-arrow-up-right"></i> Ver tarjeta</a><button id="logout-button" type="button"><i class="bi bi-box-arrow-right"></i> Salir</button></nav></div></div>
     <main class="wrap">
         <div id="page-error" class="alert" hidden></div>
         <header class="heading"><div><p class="eyebrow">Panel del taxista</p><h1>Tu tarjeta digital</h1><p>Actualizá la información que tus pasajeros verán al escanear tu QR.</p></div><a class="button button-soft" href="#qr-section"><i class="bi bi-qr-code"></i>Generar mi QR</a></header>
@@ -260,7 +260,7 @@
         });
         document.getElementById('download-qr').addEventListener('click', () => {
             const image = document.querySelector('#qr-code img'); const canvas = document.querySelector('#qr-code canvas'); const link = document.createElement('a');
-            link.download = `taxi-ya-${currentProfile.publicId}-qr.png`; link.href = image?.src || canvas?.toDataURL('image/png'); link.click();
+            link.download = `tarjetaxi-${currentProfile.publicId}-qr.png`; link.href = image?.src || canvas?.toDataURL('image/png'); link.click();
         });
         document.getElementById('print-qr').addEventListener('click', () => window.print());
         document.getElementById('logout-button').addEventListener('click', async () => { await fetch('/api/auth/logout', { method:'POST', credentials:'same-origin' }); window.location.assign('/'); });

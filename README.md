@@ -1,6 +1,6 @@
-# Taxi Ya
+# TarjeTaxi
 
-Taxi Ya permite a taxistas independientes de Buenos Aires crear una tarjeta digital informativa y compartirla mediante un código QR personal. El pasajero escanea el código para consultar datos de contacto, vehículo, servicios y medios de pago; la plataforma no asigna viajes ni recibe pedidos.
+TarjeTaxi permite a taxistas independientes de Buenos Aires crear una tarjeta digital informativa y compartirla mediante un código QR personal. El pasajero escanea el código para consultar datos de contacto, vehículo, servicios y medios de pago; la plataforma no asigna viajes ni recibe pedidos.
 
 ## Requisitos
 
@@ -29,7 +29,7 @@ Los perfiles, usuarios y tarjetas se consultan mediante repositorios Dapper. La 
 
 | Ruta | Acceso | Función |
 | --- | --- | --- |
-| `/` | Público | Presentación de Taxi Ya y acceso/registro de taxistas. |
+| `/` | Público | Presentación de TarjeTaxi y acceso/registro de taxistas. |
 | `/admin` | Google OAuth | Panel para editar la tarjeta y generar, ampliar, descargar o imprimir el QR. |
 | `/panel` | Público | Redirige a `/admin` (dirección anterior). |
 | `/perfil/{publicId}` | Público | Tarjeta del taxista para consulta desde celular o navegador (identificada por GUID). |
