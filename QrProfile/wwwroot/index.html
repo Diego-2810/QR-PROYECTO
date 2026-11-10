@@ -102,6 +102,40 @@
         footer a { color:var(--muted); font-weight:700; text-decoration:none; }
         footer a:hover { color:var(--ink); }
         @keyframes rise { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+        .trips { padding:0 0 64px; animation:rise .55s .12s ease-out both; }
+        .trips[hidden] { display:none; }
+        .trips-head { display:flex; align-items:end; justify-content:space-between; gap:16px; margin-bottom:20px; padding-top:28px; border-top:1px solid var(--line); }
+        .trips-head h2 { margin:0; font:800 clamp(1.6rem,4vw,2.2rem) Manrope,sans-serif; }
+        .trips-head p { margin:6px 0 0; color:var(--soft); }
+        .trip-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:18px; }
+        .trip-card { display:flex; flex-direction:column; padding:0; overflow:hidden; border:1px solid var(--line); border-radius:8px; background:var(--surface); color:var(--ink); text-align:left; cursor:pointer; transition:transform .16s ease,box-shadow .16s ease; }
+        .trip-card:hover,.trip-card:focus-visible { transform:translateY(-3px); box-shadow:0 8px 24px var(--shadow); }
+        .trip-cover { position:relative; aspect-ratio:4/3; background:var(--photo-bg); }
+        .trip-cover img { width:100%; height:100%; object-fit:cover; display:block; }
+        .trip-cover .placeholder { display:grid; width:100%; height:100%; place-items:center; color:var(--accent); font-size:2.2rem; }
+        .trip-count { position:absolute; right:10px; bottom:10px; display:inline-flex; align-items:center; gap:5px; padding:4px 9px; border-radius:999px; background:#111a15cc; color:#fff; font-size:.78rem; font-weight:700; }
+        .trip-body { padding:14px 16px 16px; }
+        .trip-body h3 { margin:0 0 4px; font:800 1.12rem Manrope,sans-serif; overflow-wrap:anywhere; }
+        .trip-body .date { margin:0; color:var(--muted); font-size:.85rem; }
+        .trip-body .desc { display:-webkit-box; margin:8px 0 0; overflow:hidden; color:var(--soft); font-size:.92rem; line-height:1.45; -webkit-line-clamp:3; -webkit-box-orient:vertical; }
+        .viewer { width:100%; max-width:100%; height:100%; max-height:100%; margin:0; padding:0; border:0; background:#0b0f0d; color:#fff; }
+        .viewer::backdrop { background:#0b0f0d; }
+        .viewer-inner { display:grid; grid-template-rows:auto 1fr auto; height:100%; }
+        .viewer-top { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 16px; }
+        .viewer-top strong { display:block; font:800 1.05rem Manrope,sans-serif; overflow-wrap:anywhere; }
+        .viewer-top span { color:#aab3ab; font-size:.85rem; }
+        .viewer-btn { display:grid; width:44px; height:44px; flex:0 0 44px; place-items:center; border:0; border-radius:50%; background:#ffffff1f; color:#fff; font-size:1.2rem; cursor:pointer; }
+        .viewer-btn:hover { background:#ffffff33; } .viewer-btn[hidden] { display:none; }
+        .viewer-stage { position:relative; display:grid; min-height:0; place-items:center; padding:0 8px; touch-action:pan-y; }
+        .viewer-stage img,.viewer-stage video { max-width:100%; max-height:100%; object-fit:contain; border-radius:4px; }
+        .viewer-stage iframe { width:min(100%,960px); aspect-ratio:16/9; max-height:100%; border:0; border-radius:6px; }
+        .viewer-link { display:grid; gap:14px; justify-items:center; padding:24px; text-align:center; }
+        .viewer-link i.big { font-size:3rem; color:var(--lime); }
+        .viewer-nav { position:absolute; top:50%; transform:translateY(-50%); }
+        .viewer-nav.prev { left:12px; } .viewer-nav.next { right:12px; }
+        .viewer-bottom { padding:12px 16px 18px; color:#d6ddd5; font-size:.92rem; line-height:1.5; text-align:center; white-space:pre-wrap; overflow-wrap:anywhere; max-height:22vh; overflow:auto; }
+        @media(max-width:760px) { .viewer-nav { top:auto; bottom:8px; transform:none; } .trip-grid { grid-template-columns:1fr 1fr; gap:12px; } .trip-body { padding:10px 12px 12px; } .trip-body h3 { font-size:.98rem; } .trip-body .desc { display:none; } }
+        @media(max-width:380px) { .trip-grid { grid-template-columns:1fr; } }
         @media(max-width:760px) { .shell { width:min(100% - 28px,580px); } header { padding:16px 0; } main { grid-template-columns:1fr; gap:24px; padding:28px 0 43px; } .profile { padding-top:8px; } h1 { font-size:clamp(2.7rem,14vw,4rem); } .profile-head h1 { font-size:clamp(2rem,10vw,3rem); } .profile-photo { width:104px; height:104px; flex-basis:104px; } .service-list { grid-template-columns:1fr; } .profile-actions { display:grid; grid-template-columns:1fr; } }
         @media(max-width:380px) { .wordmark span:last-child { display:none; } }
         @media(prefers-reduced-motion:reduce) { *,*::before,*::after { animation-duration:.01ms!important; transition-duration:.01ms!important; } }
@@ -123,9 +157,20 @@
             </div>
         </header>
         <main id="perfil" aria-live="polite"><div class="state"><i class="bi bi-arrow-repeat"></i><span data-i18n="loading">Cargando tarjeta...</span></div></main>
+        <section class="trips" id="viajes" aria-labelledby="trips-title" hidden>
+            <div class="trips-head"><div><h2 id="trips-title" data-i18n="trips">Viajes</h2><p data-i18n="tripsIntro">Algunos de los lugares a los que este taxista llevó pasajeros.</p></div></div>
+            <div class="trip-grid" id="trip-grid"></div>
+        </section>
         <footer><span>Taxi Ya · <span data-i18n="footer">Tarjeta digital para taxistas</span> <span id="year"></span></span><a href="/api/auth/login-google"><span data-i18n="driverAccess">Acceso taxistas</span> <i class="bi bi-arrow-up-right"></i></a></footer>
     </div>
-    <script src="/js/taxiya-comun.js?v=1"></script>
+    <dialog class="viewer" id="viewer" aria-labelledby="viewer-title">
+        <div class="viewer-inner">
+            <div class="viewer-top"><div><strong id="viewer-title"></strong><span id="viewer-counter"></span></div><button class="viewer-btn" id="viewer-close" type="button"><i class="bi bi-x-lg"></i></button></div>
+            <div class="viewer-stage" id="viewer-stage"></div>
+            <div class="viewer-bottom" id="viewer-caption"></div>
+        </div>
+    </dialog>
+    <script src="/js/taxiya-comun.js?v=3"></script>
     <script>
         // ---------- Textos en cada idioma ----------
         const I18N = {
@@ -143,7 +188,9 @@
                 mapError:'No se pudo cargar el mapa, pero igual podés enviar tu ubicación.',
                 waGreeting:'Hola {name}, te escribo desde tu tarjeta de Taxi Ya.', waLocation:'Hola {name}, te escribo desde tu tarjeta de Taxi Ya. Estoy acá: {url}',
                 notFound:'No se encontró esta tarjeta.', loadError:'No se pudo cargar el perfil.', noId:'No se encontró el identificador de esta tarjeta.',
-                themeDark:'Activar modo oscuro', themeLight:'Activar modo claro'
+                themeDark:'Activar modo oscuro', themeLight:'Activar modo claro',
+                trips:'Viajes', tripsIntro:'Algunos de los lugares a los que este taxista llevó pasajeros.', mediaOne:'1 foto o video', mediaMany:'{n} fotos y videos',
+                openTrip:'Ver el viaje {title}', close:'Cerrar', prev:'Anterior', next:'Siguiente', openOn:'Ver en {site}', counter:'{i} de {n}', linkNote:'Este video está publicado en {site}.'
             },
             en: {
                 language:'Language', loading:'Loading card...', footer:'Digital card for taxi drivers', driverAccess:'Driver login',
@@ -159,7 +206,9 @@
                 mapError:'The map could not be loaded, but you can still send your location.',
                 waGreeting:'Hi {name}, I got your contact from your Taxi Ya card.', waLocation:'Hi {name}, I got your contact from your Taxi Ya card. I am here: {url}',
                 notFound:'This card was not found.', loadError:'The profile could not be loaded.', noId:'This card has no valid identifier.',
-                themeDark:'Switch to dark mode', themeLight:'Switch to light mode'
+                themeDark:'Switch to dark mode', themeLight:'Switch to light mode',
+                trips:'Trips', tripsIntro:'Some of the places this driver has taken passengers.', mediaOne:'1 photo or video', mediaMany:'{n} photos and videos',
+                openTrip:'View the trip {title}', close:'Close', prev:'Previous', next:'Next', openOn:'Watch on {site}', counter:'{i} of {n}', linkNote:'This video is published on {site}.'
             },
             pt: {
                 language:'Idioma', loading:'Carregando cartão...', footer:'Cartão digital para taxistas', driverAccess:'Acesso de taxistas',
@@ -175,7 +224,9 @@
                 mapError:'Não foi possível carregar o mapa, mas você ainda pode enviar sua localização.',
                 waGreeting:'Olá {name}, peguei seu contato no seu cartão do Taxi Ya.', waLocation:'Olá {name}, peguei seu contato no seu cartão do Taxi Ya. Estou aqui: {url}',
                 notFound:'Este cartão não foi encontrado.', loadError:'Não foi possível carregar o perfil.', noId:'Este cartão não tem um identificador válido.',
-                themeDark:'Ativar modo escuro', themeLight:'Ativar modo claro'
+                themeDark:'Ativar modo escuro', themeLight:'Ativar modo claro',
+                trips:'Viagens', tripsIntro:'Alguns dos lugares para onde este taxista já levou passageiros.', mediaOne:'1 foto ou vídeo', mediaMany:'{n} fotos e vídeos',
+                openTrip:'Ver a viagem {title}', close:'Fechar', prev:'Anterior', next:'Próximo', openOn:'Ver no {site}', counter:'{i} de {n}', linkNote:'Este vídeo está publicado no {site}.'
             }
         };
         const SUPPORTED = Object.keys(I18N);
@@ -277,7 +328,9 @@
             const payment = (profile.datosPago || '').trim();
             const paymentUrl = safeWebUrl(payment);
             const initials = name.trim().split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase();
-            const greeting = t('waGreeting', { name: firstName(name) });
+            // El saludo usa el campo Nombre tal cual (puede ser un nombre comercial como "Diego Ya").
+            const greetName = String(profile.nombre || '').trim() || firstName(name);
+            const greeting = t('waGreeting', { name: greetName });
             perfilNode.innerHTML = `
                 <section class="profile" aria-labelledby="profile-name">
                     <div class="profile-head"><div class="profile-photo">${photoUrl ? `<img src="${escapeHtml(photoUrl)}" alt="${escapeHtml(t('photoAlt', { name }))}">` : `<span aria-label="${escapeHtml(t('initials'))}">${escapeHtml(initials)}</span>`}</div>
@@ -292,7 +345,7 @@
                     ${payment ? `<section class="payment-panel"><p class="section-label">${escapeHtml(t('payment'))}</p>${paymentUrl ? `<a class="button button-primary" href="${escapeHtml(paymentUrl)}" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right"></i>${escapeHtml(t('openPayment'))}</a>` : `<p class="payment-value" id="payment-value">${escapeHtml(payment)}</p><button class="button button-secondary" id="copy-payment" type="button"><i class="bi bi-copy"></i>${escapeHtml(t('copy'))}</button>`}<p id="payment-status" class="profile-status" role="status"></p></section>` : ''}
                 </aside>`;
             document.getElementById('save-contact')?.addEventListener('click', () => {
-                const vcard = ['BEGIN:VCARD', 'VERSION:3.0', `FN:${escapeVCard(name)}`, `TEL;TYPE=CELL:${escapeVCard(phone)}`, 'NOTE:Taxi Ya', 'END:VCARD'].join('\r\n');
+                const vcard = ['BEGIN:VCARD', 'VERSION:3.0', `N:${escapeVCard(profile.apellido || '')};${escapeVCard(profile.nombre || name)};;;`, `FN:${escapeVCard(name)}`, `TEL;TYPE=CELL:${escapeVCard(phone)}`, 'NOTE:Taxi Ya', 'END:VCARD'].join('\r\n');
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(new Blob([vcard], { type:'text/vcard;charset=utf-8' }));
                 link.download = `${name.trim().replace(/[^\p{L}\p{N}-]+/gu, '-') || 'taxista'}.vcf`;
@@ -308,8 +361,8 @@
                     setStatus('payment-status', t('copyFail'), true);
                 }
             });
-            document.getElementById('show-location')?.addEventListener('click', () => requestLocation(phoneDigits, name));
-            if (userLocation) showLocation(phoneDigits, name);
+            document.getElementById('show-location')?.addEventListener('click', () => requestLocation(phoneDigits, greetName));
+            if (userLocation) showLocation(phoneDigits, greetName);
         }
 
         // ---------- Ubicación del pasajero y mini mapa ----------
@@ -344,7 +397,7 @@
             const sendLink = document.getElementById('send-location');
             const showButton = document.getElementById('show-location');
             if (!sendLink || !userLocation) return;
-            sendLink.href = whatsappUrl(phoneDigits, t('waLocation', { name: firstName(name), url: mapsUrl(userLocation) }));
+            sendLink.href = whatsappUrl(phoneDigits, t('waLocation', { name, url: mapsUrl(userLocation) }));
             sendLink.hidden = false;
             showButton.innerHTML = `<i class="bi bi-arrow-clockwise"></i>${escapeHtml(t('locationShow'))}`;
             setStatus('location-status', '');
@@ -380,11 +433,102 @@
                 currentProfile = await response.json();
                 applyStaticTexts();
                 render(currentProfile);
+                loadTrips(routeId);
             } catch {
                 currentError = 'loadError';
                 renderError();
             }
         }
+
+        // ---------- Viajes ----------
+        const tripsSection = document.getElementById('viajes');
+        const tripGrid = document.getElementById('trip-grid');
+        const viewer = document.getElementById('viewer');
+        const viewerStage = document.getElementById('viewer-stage');
+        let trips = [];
+        let viewerTrip = null;
+        let viewerIndex = 0;
+        const LOCALES = { es:'es-AR', en:'en-US', pt:'pt-BR' };
+
+        function tripDate(value) {
+            if (!value) return '';
+            const [y, m, d] = String(value).slice(0, 10).split('-').map(Number);
+            return new Date(y, m - 1, d).toLocaleDateString(LOCALES[lang], { month:'long', year:'numeric' });
+        }
+        function renderTrips() {
+            tripsSection.hidden = trips.length === 0;
+            tripGrid.innerHTML = trips.map((trip, index) => {
+                const cover = trip.medios.map(medio => TaxiYa.miniaturaMedio(medio, 640, 480)).find(Boolean);
+                const count = trip.medios.length === 1 ? t('mediaOne') : t('mediaMany', { n: trip.medios.length });
+                return `<button class="trip-card" type="button" data-index="${index}" aria-label="${escapeHtml(t('openTrip', { title: trip.titulo }))}">
+                    <div class="trip-cover">${cover ? `<img src="${escapeHtml(cover)}" alt="" loading="lazy">` : '<span class="placeholder"><i class="bi bi-images"></i></span>'}<span class="trip-count"><i class="bi bi-images"></i>${escapeHtml(count)}</span></div>
+                    <div class="trip-body"><h3>${escapeHtml(trip.titulo)}</h3>${trip.fecha ? `<p class="date">${escapeHtml(tripDate(trip.fecha))}</p>` : ''}${trip.descripcion ? `<p class="desc">${escapeHtml(trip.descripcion)}</p>` : ''}</div>
+                </button>`;
+            }).join('');
+        }
+        async function loadTrips(publicId) {
+            try {
+                const response = await fetch(`/api/taxistas/${publicId}/viajes`);
+                if (!response.ok) return;
+                trips = (await response.json()).filter(trip => trip.medios.length > 0);
+                renderTrips();
+            } catch { /* Sin viajes: la tarjeta sigue funcionando igual. */ }
+        }
+
+        function renderViewer() {
+            const medio = viewerTrip.medios[viewerIndex];
+            const total = viewerTrip.medios.length;
+            document.getElementById('viewer-title').textContent = viewerTrip.titulo;
+            document.getElementById('viewer-counter').textContent = total > 1 ? t('counter', { i: viewerIndex + 1, n: total }) : tripDate(viewerTrip.fecha);
+            document.getElementById('viewer-caption').textContent = viewerTrip.descripcion || '';
+            let content = '';
+            if (medio.tipo === 'imagen') content = `<img src="${escapeHtml(TaxiYa.urlImagenGrande(medio.url))}" alt="${escapeHtml(viewerTrip.titulo)}">`;
+            else if (medio.tipo === 'video') content = `<video src="${escapeHtml(TaxiYa.urlVideo(medio.url))}" poster="${escapeHtml(TaxiYa.miniaturaMedio(medio, 1280, 720))}" controls playsinline preload="metadata"></video>`;
+            else if (medio.tipo === 'youtube') content = `<iframe src="${escapeHtml(TaxiYa.urlEmbedYouTube(medio.url))}" title="YouTube" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+            else {
+                const site = TaxiYa.sitioEnlace(medio.url);
+                content = `<div class="viewer-link"><i class="bi bi-play-circle big"></i><p>${escapeHtml(t('linkNote', { site }))}</p><a class="button button-primary" href="${escapeHtml(medio.url)}" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right"></i>${escapeHtml(t('openOn', { site }))}</a></div>`;
+            }
+            const nav = total > 1
+                ? `<button class="viewer-btn viewer-nav prev" type="button" data-step="-1" aria-label="${escapeHtml(t('prev'))}"><i class="bi bi-chevron-left"></i></button><button class="viewer-btn viewer-nav next" type="button" data-step="1" aria-label="${escapeHtml(t('next'))}"><i class="bi bi-chevron-right"></i></button>`
+                : '';
+            viewerStage.innerHTML = content + nav;
+            document.getElementById('viewer-close').setAttribute('aria-label', t('close'));
+        }
+        function openViewer(index) {
+            viewerTrip = trips[index]; viewerIndex = 0;
+            renderViewer();
+            viewer.showModal();
+        }
+        function stepViewer(step) {
+            const total = viewerTrip.medios.length;
+            if (total < 2) return;
+            viewerIndex = (viewerIndex + step + total) % total;
+            renderViewer();
+        }
+        tripGrid.addEventListener('click', event => {
+            const card = event.target.closest('.trip-card');
+            if (card) openViewer(Number(card.dataset.index));
+        });
+        viewerStage.addEventListener('click', event => {
+            const button = event.target.closest('[data-step]');
+            if (button) stepViewer(Number(button.dataset.step));
+        });
+        document.getElementById('viewer-close').addEventListener('click', () => viewer.close());
+        viewer.addEventListener('close', () => { viewerStage.innerHTML = ''; }); // corta videos en reproducción
+        viewer.addEventListener('keydown', event => {
+            if (event.key === 'ArrowLeft') stepViewer(-1);
+            if (event.key === 'ArrowRight') stepViewer(1);
+        });
+        // Deslizar con el dedo para pasar de foto.
+        let touchStartX = null;
+        viewerStage.addEventListener('touchstart', event => { touchStartX = event.touches[0].clientX; }, { passive: true });
+        viewerStage.addEventListener('touchend', event => {
+            if (touchStartX === null) return;
+            const delta = event.changedTouches[0].clientX - touchStartX;
+            touchStartX = null;
+            if (Math.abs(delta) > 50 && !event.target.closest('video,iframe')) stepViewer(delta < 0 ? 1 : -1);
+        });
 
         langSelect.addEventListener('change', () => {
             lang = SUPPORTED.includes(langSelect.value) ? langSelect.value : 'es';
@@ -392,6 +536,8 @@
             applyStaticTexts();
             if (currentProfile) render(currentProfile);
             else if (currentError) renderError();
+            renderTrips();
+            if (viewer.open) renderViewer();
         });
 
         applyStaticTexts();

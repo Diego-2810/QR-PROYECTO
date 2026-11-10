@@ -18,7 +18,8 @@ No hay un proyecto de pruebas automatizadas en el repositorio. Antes de publicar
 - **Persistencia:** Dapper y `MySql.Data` (ADO.NET) contra MariaDB/MySQL.
 - **Esquema:** script SQL reejecutable en `Database/init.sql`; no se usa Entity Framework Core, Pomelo ni `dotnet ef`.
 - **Autenticación:** Google OAuth 2.0 y cookie de autenticación ASP.NET Core.
-- **Imágenes:** carga de fotos de perfil mediante Cloudinary (`CloudinaryDotNet`), con conversión a JPG y recorte a 500x500.
+- **Imágenes y videos:** Cloudinary (`CloudinaryDotNet`). La foto de perfil pasa por el servidor (máx. 10 MB, se convierte a JPG 500x500 y reemplaza a la anterior). Las fotos y videos de "Viajes" se suben directo del navegador con una firma del servidor, que después verifica cada archivo.
+- **Idiomas y tema:** la tarjeta pública traduce sus textos (ES/EN/PT) y cambia entre modo claro y oscuro en el navegador; los servicios del catálogo se traducen con `wwwroot/js/taxiya-comun.js`.
 - **Interfaz:** HTML, CSS y JavaScript en `QrProfile/Views` y `QrProfile/wwwroot`.
 - **QR:** generado en el navegador mediante QRCode.js; el contenido dirige a `/perfil/{publicId}` (GUID aleatorio).
 
@@ -30,15 +31,18 @@ Los perfiles, usuarios y tarjetas se consultan mediante repositorios Dapper. La 
 | --- | --- | --- |
 | `/` | Público | Presentación de Taxi Ya y acceso/registro de taxistas. |
 | `/admin` | Google OAuth | Panel para editar la tarjeta y generar, ampliar, descargar o imprimir el QR. |
-| `/panel` | Google OAuth | Alias del panel. |
+| `/panel` | Público | Redirige a `/admin` (dirección anterior). |
 | `/perfil/{publicId}` | Público | Tarjeta del taxista para consulta desde celular o navegador (identificada por GUID). |
+| `/health` | Público | Estado de la app y de la conexión a la base (`Healthy` / `Unhealthy`). |
 | `GET /api/taxistas/{publicId}` | Público | Datos públicos de una tarjeta (por GUID, sin exponer el ID numérico interno). |
-| `POST /api/taxistas` | Autenticado | Guardar el perfil propio y subir opcionalmente un archivo de foto a Cloudinary. |
+| `GET /api/taxistas/{publicId}/viajes` | Público | Viajes (álbumes) de la tarjeta con sus fotos, videos y links. |
+| `POST /api/taxistas` | Autenticado | Guardar el perfil propio y subir opcionalmente la foto (máx. 10 MB) a Cloudinary. |
 | `GET/PUT /api/administracion/perfil` | Autenticado | Consultar y actualizar el perfil propio. |
+| `/api/viajes/...` | Autenticado | Crear, editar, ordenar y borrar viajes; firmar subidas a Cloudinary; agregar o quitar fotos, videos y links. |
 | `GET /api/auth/login-google` | Público | Iniciar autenticación Google. |
 | `POST /api/auth/logout` | Cookie de autenticación | Cerrar sesión. |
 
-En el primer acceso Google se registra o recupera el usuario y se crea su perfil de taxista. El panel guarda nombre, teléfono/WhatsApp, foto (subiendo un archivo que se almacena en Cloudinary o conservando la URL actual), vehículo, patente, servicios y datos o enlace de pago.
+En el primer acceso Google se registra o recupera el usuario y se crea su perfil de taxista. El panel guarda nombre (o nombre comercial) y apellido opcional, teléfono/WhatsApp con código de país, foto, marca y modelo del auto, patente, servicios (catálogo traducido o texto propio) y datos o enlace de pago, además de la sección "Mis viajes".
 
 ## Configuración local
 
@@ -105,7 +109,13 @@ Abrir `https://localhost:7215/`. También está disponible `http://localhost:526
 
 Usar una instancia MariaDB/MySQL gestionada o un VPS accesible desde Render. Habilitar TLS si el proveedor lo ofrece, limitar conexiones entrantes y ejecutar una vez desde una conexión administrativa `Database/init-nube.sql` (proveedores que ya dan una base creada, como Aiven) o `Database/init.sql` (servidor propio). Planificar copias de seguridad y aplicar cambios futuros del esquema de forma controlada.
 
-En una base que ya existía, ejecutar también `Database/migraciones/002_data_protection_keys.sql` antes de iniciar esta versión: crea la tabla donde se guardan las claves de la cookie de sesión, para que los taxistas no pierdan la sesión en cada reinicio.
+En una base que ya existía, ejecutar también, en orden y antes de iniciar esta versión:
+
+- `Database/migraciones/002_data_protection_keys.sql`: tabla donde se guardan las claves de la cookie de sesión, para que los taxistas no pierdan la sesión en cada reinicio.
+- `Database/migraciones/003_viajes.sql`: tablas `Viajes` y `ViajeMedios` de la sección "Viajes".
+- `Database/migraciones/004_taxistas_nombre_vehiculo.sql`: columnas `Nombre`, `Apellido`, `Marca` y `Modelo`, completadas con los datos que ya había.
+
+Si falta alguna, la aplicación no arranca y el log indica qué script ejecutar.
 
 Para bases de datos ya existentes (migración a `PublicId` aleatorio sin usar `UUID()` del motor), aplicar los pasos en este orden:
 
