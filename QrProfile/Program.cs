@@ -86,6 +86,8 @@ builder.Services.AddScoped<IProfileRepository, ProfileRepository>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<ITaxistaRepository, TaxistaRepository>();
+builder.Services.AddScoped<IViajeRepository, ViajeRepository>();
+builder.Services.AddSingleton<CloudinaryProveedor>();
 
 builder.Services.AddControllers();
 builder.Services.AddAuthentication(options =>
@@ -120,6 +122,7 @@ builder.Services.AddAuthorization();
 var app = builder.Build();
 
 await MySqlXmlRepository.VerificarTablaAsync(connectionString);
+await ViajeRepository.VerificarTablasAsync(connectionString);
 
 var cloudinary = app.Configuration.GetSection("Cloudinary");
 if (new[] { "CloudName", "ApiKey", "ApiSecret" }.Any(clave => string.IsNullOrWhiteSpace(cloudinary[clave])))

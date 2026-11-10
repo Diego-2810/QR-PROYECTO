@@ -55,9 +55,40 @@
         #qr-large { display:grid; width:min(72vw,320px); aspect-ratio:1; place-items:center; margin:18px auto; background:#fff; }
         #qr-large img,#qr-large canvas { width:100%; height:100%; }
         .dialog-actions { display:flex; justify-content:center; gap:9px; }
+        .trips-section { margin-top:35px; }
+        .trips-intro { margin:0 0 16px; color:var(--muted); font-size:.9rem; }
+        .trip-form { padding:16px; border:1px solid var(--line); border-radius:6px; background:var(--surface); }
+        .trip-form .form-grid label:first-child { margin-top:0; }
+        .trip-form textarea { min-height:80px; }
+        .trip-list { display:grid; gap:16px; margin-top:20px; }
+        .trip { padding:16px; border:1px solid var(--line); border-radius:6px; background:var(--surface); }
+        .trip-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+        .trip h3 { margin:0 0 4px; font:800 1.08rem Manrope,sans-serif; overflow-wrap:anywhere; }
+        .trip-meta { margin:0; color:var(--muted); font-size:.84rem; }
+        .trip-desc { margin:8px 0 0; color:#465149; font-size:.92rem; white-space:pre-wrap; overflow-wrap:anywhere; }
+        .trip-tools { display:flex; flex-wrap:wrap; gap:6px; justify-content:flex-end; }
+        .icon-btn { display:grid; width:36px; height:36px; place-items:center; border:1px solid #c9cec4; border-radius:5px; background:var(--paper); color:var(--ink); cursor:pointer; }
+        .icon-btn:hover { border-color:var(--green); } .icon-btn:disabled { opacity:.35; cursor:default; }
+        .icon-btn.danger:hover { border-color:var(--red); color:var(--red); }
+        .media-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:10px; margin-top:14px; }
+        .media-item { position:relative; aspect-ratio:4/3; overflow:hidden; border-radius:5px; background:#e4e8dd; }
+        .media-item img { width:100%; height:100%; object-fit:cover; display:block; }
+        .media-badge { position:absolute; left:6px; bottom:6px; display:inline-flex; align-items:center; gap:4px; padding:2px 7px; border-radius:999px; background:#17221ccc; color:#fff; font-size:.72rem; font-weight:700; }
+        .media-link { display:grid; height:100%; place-items:center; padding:8px; color:var(--green); font-size:.8rem; font-weight:700; text-align:center; }
+        .media-link i { display:block; font-size:1.5rem; }
+        .media-actions { position:absolute; top:5px; right:5px; display:flex; gap:4px; }
+        .media-actions button { display:grid; width:28px; height:28px; place-items:center; border:0; border-radius:50%; background:#ffffffe6; color:var(--ink); cursor:pointer; font-size:.8rem; }
+        .media-actions button:hover { background:#fff; color:var(--green); } .media-actions button.danger:hover { color:var(--red); }
+        .trip-add { display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-top:14px; }
+        .trip-add .link-form { display:flex; flex:1 1 280px; gap:8px; }
+        .trip-add .link-form input { min-width:0; padding:9px 11px; }
+        .file-button { position:relative; overflow:hidden; } .file-button input { position:absolute; inset:0; opacity:0; cursor:pointer; }
+        .trip-status { min-height:18px; margin:10px 0 0; color:var(--green); font-size:.86rem; } .trip-status.is-error { color:var(--red); }
+        .trip-edit { margin-top:12px; }
+        .empty-trips { padding:18px; border:1px dashed #c9cec4; border-radius:6px; color:var(--muted); text-align:center; }
         @media(max-width:820px) { .columns { grid-template-columns:1fr; } .wrap { width:min(100% - 30px,650px); margin-top:25px; } .heading { align-items:start; flex-direction:column; } }
         @media(max-width:520px) { .bar-inner { padding:0 15px; } .bar-actions { gap:10px; } .bar-actions a,.bar-actions button { font-size:.8rem; } .wrap { width:calc(100% - 28px); } .form-grid { grid-template-columns:1fr; } .field-full { grid-column:auto; } .qr-layout { align-items:flex-start; flex-direction:column; } }
-        @media print { .topbar,.heading,.profile-section,.qr-actions,.qr-copy { display:none!important; } body { background:#fff; } .wrap { width:100%; margin:0; } .columns { display:block; } .qr-section { margin:0; border:0; } .qr-layout { display:block; border:0; text-align:center; } #qr-code { margin:20px auto; width:260px; height:260px; cursor:auto; } #qr-code img,#qr-code canvas { max-width:240px; max-height:240px; } }
+        @media print { .topbar,.heading,.profile-section,.trips-section,.qr-actions,.qr-copy { display:none!important; } body { background:#fff; } .wrap { width:100%; margin:0; } .columns { display:block; } .qr-section { margin:0; border:0; } .qr-layout { display:block; border:0; text-align:center; } #qr-code { margin:20px auto; width:260px; height:260px; cursor:auto; } #qr-code img,#qr-code canvas { max-width:240px; max-height:240px; } }
     </style>
 </head>
 <body>
@@ -82,12 +113,21 @@
                 <section class="section qr-section" id="qr-section" aria-labelledby="qr-title"><div class="section-head"><h2 id="qr-title">Generar mi QR</h2><span class="count">Listo para compartir</span></div>
                     <div class="qr-layout"><button id="qr-code" type="button" aria-label="Ampliar código QR"></button><div class="qr-copy"><strong>Tu tarjeta, a un escaneo de distancia</strong><p id="qr-url">Generando enlace...</p><div class="qr-actions"><button class="button button-soft" id="show-qr" type="button"><i class="bi bi-arrows-fullscreen"></i>Ver grande</button><button class="button button-soft" id="download-qr" type="button"><i class="bi bi-download"></i>Descargar</button><button class="button button-soft" id="print-qr" type="button"><i class="bi bi-printer"></i>Imprimir</button></div></div></div>
                 </section>
+                <section class="section trips-section" id="trips-section" aria-labelledby="trips-title"><div class="section-head"><h2 id="trips-title">Mis viajes</h2><span class="count" id="trips-count"></span></div>
+                    <p class="trips-intro">Mostrá a tus pasajeros los lugares a los que viajaste. Cada viaje es un álbum con fotos, videos cortos (hasta 60 segundos) o links de YouTube, Instagram o TikTok.</p>
+                    <form class="trip-form" id="new-trip-form"><div class="form-grid">
+                        <div><label for="new-trip-title">Destino o título</label><input id="new-trip-title" name="titulo" maxlength="120" required placeholder="Ej. Cataratas del Iguazú"></div>
+                        <div><label for="new-trip-date">Fecha (opcional)</label><input id="new-trip-date" name="fecha" type="date"></div>
+                        <div class="field-full"><label for="new-trip-desc">Descripción (opcional)</label><textarea id="new-trip-desc" name="descripcion" maxlength="1000" placeholder="Contá cómo fue el viaje, cuánto dura, qué incluye..."></textarea></div>
+                    </div><div class="form-actions"><button class="button" type="submit"><i class="bi bi-plus-lg"></i>Crear viaje</button><span class="trip-status" id="new-trip-status" role="status"></span></div></form>
+                    <div class="trip-list" id="trip-list"><p class="loading">Cargando viajes...</p></div>
+                </section>
             </div>
         </div>
     </main>
     <dialog class="qr-dialog" id="qr-dialog" aria-labelledby="qr-dialog-title"><h2 id="qr-dialog-title">Tu código QR</h2><p id="qr-dialog-url"></p><div id="qr-large"></div><div class="dialog-actions"><button class="button" id="fullscreen-qr" type="button"><i class="bi bi-arrows-fullscreen"></i>Pantalla completa</button><button class="button button-soft" id="close-qr" type="button"><i class="bi bi-x-lg"></i>Cerrar</button></div></dialog>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="/js/taxiya-comun.js?v=1"></script>
+    <script src="/js/taxiya-comun.js?v=3"></script>
     <script>
         const profileForm = document.getElementById('profile-form');
         const pageError = document.getElementById('page-error');
@@ -211,6 +251,173 @@
         });
         document.getElementById('print-qr').addEventListener('click', () => window.print());
         document.getElementById('logout-button').addEventListener('click', async () => { await fetch('/api/auth/logout', { method:'POST', credentials:'same-origin' }); window.location.assign('/'); });
+        // ---------- Mis viajes ----------
+        const tripList = document.getElementById('trip-list');
+        let trips = [];
+
+        function tripDate(value) {
+            if (!value) return '';
+            const [y, m, d] = String(value).slice(0, 10).split('-').map(Number);
+            return new Date(y, m - 1, d).toLocaleDateString('es-AR', { day:'numeric', month:'long', year:'numeric' });
+        }
+        function setTripStatus(node, text, isError = false) { if (!node) return; node.textContent = text; node.classList.toggle('is-error', isError); }
+        function tripPayload(form) {
+            const data = new FormData(form);
+            return JSON.stringify({ titulo: data.get('titulo'), descripcion: data.get('descripcion') || '', fecha: data.get('fecha') || null });
+        }
+        function mediaLabel(trip) {
+            const count = trip.medios.length;
+            return count === 0 ? 'Sin fotos ni videos' : count === 1 ? '1 archivo' : `${count} archivos`;
+        }
+        function mediaThumb(medio, index, total) {
+            const thumb = TaxiYa.miniaturaMedio(medio, 300, 225);
+            const badge = { video:'<i class="bi bi-play-fill"></i>Video', youtube:'<i class="bi bi-youtube"></i>YouTube' }[medio.tipo];
+            const body = thumb
+                ? `<img src="${escapeHtml(thumb)}" alt="" loading="lazy">${badge ? `<span class="media-badge">${badge}</span>` : ''}`
+                : `<a class="media-link" href="${escapeHtml(medio.url)}" target="_blank" rel="noopener"><span><i class="bi bi-link-45deg"></i>${escapeHtml(TaxiYa.sitioEnlace(medio.url))}</span></a>`;
+            return `<div class="media-item">${body}<div class="media-actions">
+                ${index > 0 ? `<button type="button" data-action="media-left" data-id="${medio.id}" aria-label="Mover antes" title="Mover antes"><i class="bi bi-arrow-left"></i></button>` : ''}
+                ${index < total - 1 ? `<button type="button" data-action="media-right" data-id="${medio.id}" aria-label="Mover después" title="Mover después"><i class="bi bi-arrow-right"></i></button>` : ''}
+                <button type="button" class="danger" data-action="media-delete" data-id="${medio.id}" aria-label="Borrar" title="Borrar"><i class="bi bi-x-lg"></i></button></div></div>`;
+        }
+        function renderTrips() {
+            document.getElementById('trips-count').textContent = trips.length ? `${trips.length} ${trips.length === 1 ? 'viaje' : 'viajes'} · visibles en tu tarjeta` : '';
+            if (!trips.length) { tripList.innerHTML = '<p class="empty-trips">Todavía no cargaste viajes. Creá el primero con el formulario de arriba.</p>'; return; }
+            tripList.innerHTML = trips.map((trip, index) => `
+                <article class="trip" data-trip="${trip.id}">
+                    <div class="trip-head">
+                        <div><h3>${escapeHtml(trip.titulo)}</h3><p class="trip-meta">${[tripDate(trip.fecha), mediaLabel(trip)].filter(Boolean).join(' · ')}</p>${trip.descripcion ? `<p class="trip-desc">${escapeHtml(trip.descripcion)}</p>` : ''}</div>
+                        <div class="trip-tools">
+                            <button class="icon-btn" type="button" data-action="trip-up" ${index === 0 ? 'disabled' : ''} aria-label="Subir" title="Subir"><i class="bi bi-arrow-up"></i></button>
+                            <button class="icon-btn" type="button" data-action="trip-down" ${index === trips.length - 1 ? 'disabled' : ''} aria-label="Bajar" title="Bajar"><i class="bi bi-arrow-down"></i></button>
+                            <button class="icon-btn" type="button" data-action="trip-edit" aria-label="Editar" title="Editar"><i class="bi bi-pencil"></i></button>
+                            <button class="icon-btn danger" type="button" data-action="trip-delete" aria-label="Borrar viaje" title="Borrar viaje"><i class="bi bi-trash"></i></button>
+                        </div>
+                    </div>
+                    <form class="trip-edit" hidden><div class="form-grid">
+                        <div><label>Destino o título</label><input name="titulo" maxlength="120" required value="${escapeHtml(trip.titulo)}"></div>
+                        <div><label>Fecha (opcional)</label><input name="fecha" type="date" value="${escapeHtml(String(trip.fecha || '').slice(0, 10))}"></div>
+                        <div class="field-full"><label>Descripción (opcional)</label><textarea name="descripcion" maxlength="1000">${escapeHtml(trip.descripcion)}</textarea></div>
+                    </div><div class="form-actions"><button class="button" type="submit"><i class="bi bi-check2"></i>Guardar</button><button class="button button-soft" type="button" data-action="trip-cancel">Cancelar</button></div></form>
+                    ${trip.medios.length ? `<div class="media-grid">${trip.medios.map((medio, i) => mediaThumb(medio, i, trip.medios.length)).join('')}</div>` : ''}
+                    <div class="trip-add">
+                        <label class="button button-soft file-button"><i class="bi bi-images"></i>Agregar fotos o videos<input type="file" multiple accept="image/*,video/*,.heic,.heif" data-action="trip-files"></label>
+                        <form class="link-form"><input type="url" name="url" required placeholder="Link de YouTube, Instagram o TikTok" aria-label="Link de video"><button class="button button-soft" type="submit"><i class="bi bi-link-45deg"></i>Agregar</button></form>
+                    </div>
+                    <p class="trip-status" role="status"></p>
+                </article>`).join('');
+        }
+        function replaceTrip(updated) { trips = trips.map(trip => trip.id === updated.id ? updated : trip); renderTrips(); }
+        function tripStatusNode(tripId) { return tripList.querySelector(`[data-trip="${tripId}"] .trip-status`); }
+
+        async function loadTrips() { trips = await api('/api/viajes'); renderTrips(); }
+
+        document.getElementById('new-trip-form').addEventListener('submit', async event => {
+            event.preventDefault();
+            const form = event.currentTarget; const status = document.getElementById('new-trip-status');
+            setTripStatus(status, 'Creando...');
+            try {
+                const created = await api('/api/viajes', { method:'POST', body: tripPayload(form) });
+                trips.push(created); renderTrips(); form.reset(); setTripStatus(status, 'Viaje creado. Ahora agregale fotos o videos.');
+                tripList.querySelector(`[data-trip="${created.id}"]`)?.scrollIntoView({ behavior:'smooth', block:'center' });
+            } catch (error) { setTripStatus(status, error.message, true); }
+        });
+
+        // Duración del video antes de subirlo, para no gastar datos en uno demasiado largo.
+        function videoDuration(file) {
+            return new Promise(resolve => {
+                const video = document.createElement('video'); const url = URL.createObjectURL(file);
+                const done = value => { URL.revokeObjectURL(url); resolve(value); };
+                video.preload = 'metadata'; video.onloadedmetadata = () => done(video.duration || 0); video.onerror = () => done(0);
+                setTimeout(() => done(0), 8000); video.src = url;
+            });
+        }
+        // Subida directa a Cloudinary con progreso (fetch no informa el avance).
+        function uploadToCloudinary(url, form, onProgress) {
+            return new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest(); xhr.open('POST', url);
+                xhr.upload.onprogress = event => { if (event.lengthComputable) onProgress(Math.round(event.loaded / event.total * 100)); };
+                xhr.onload = () => {
+                    let body = {}; try { body = JSON.parse(xhr.responseText); } catch { }
+                    xhr.status >= 200 && xhr.status < 300 ? resolve(body) : reject(new Error(body.error?.message || 'Cloudinary rechazó el archivo.'));
+                };
+                xhr.onerror = () => reject(new Error('Se cortó la conexión durante la subida.'));
+                xhr.send(form);
+            });
+        }
+        async function uploadFile(tripId, file, status, position, total) {
+            const prefix = total > 1 ? `(${position}/${total}) ` : '';
+            const tipo = file.type.startsWith('video/') ? 'video' : (file.type.startsWith('image/') || /\.(heic|heif)$/i.test(file.name)) ? 'imagen' : null;
+            if (!tipo) throw new Error(`"${file.name}" no es una foto ni un video.`);
+            const firma = await api('/api/viajes/firma', { method:'POST', body: JSON.stringify({ tipo }) });
+            if (file.size > firma.maxBytes) throw new Error(`"${file.name}" es muy pesado (máximo ${Math.round(firma.maxBytes / 1048576)} MB).`);
+            if (tipo === 'video') {
+                setTripStatus(status, `${prefix}Revisando ${file.name}...`);
+                const seconds = await videoDuration(file);
+                if (seconds > firma.maxSegundosVideo + 1) throw new Error(`"${file.name}" dura ${Math.round(seconds)} segundos. El máximo es ${firma.maxSegundosVideo}; para videos largos subilo a YouTube y pegá el link.`);
+            }
+            const form = new FormData();
+            form.append('file', file); form.append('api_key', firma.apiKey); form.append('timestamp', firma.timestamp);
+            form.append('signature', firma.signature); form.append('public_id', firma.publicId);
+            await uploadToCloudinary(firma.uploadUrl, form, pct => setTripStatus(status, `${prefix}Subiendo ${file.name}: ${pct}%`));
+            setTripStatus(status, `${prefix}Guardando ${file.name}...`);
+            return api(`/api/viajes/${tripId}/medios`, { method:'POST', body: JSON.stringify({ tipo, cloudinaryPublicId: firma.publicId }) });
+        }
+
+        tripList.addEventListener('change', async event => {
+            if (event.target.dataset.action !== 'trip-files') return;
+            const input = event.target; const tripId = Number(input.closest('[data-trip]').dataset.trip);
+            const files = [...input.files]; input.value = '';
+            const status = () => tripStatusNode(tripId);
+            const errors = [];
+            for (const [index, file] of files.entries()) {
+                try { replaceTrip(await uploadFile(tripId, file, status(), index + 1, files.length)); }
+                catch (error) { errors.push(error.message); }
+            }
+            setTripStatus(status(), errors.length ? errors.join(' ') : (files.length === 1 ? 'Archivo agregado.' : 'Archivos agregados.'), errors.length > 0);
+        });
+
+        tripList.addEventListener('submit', async event => {
+            event.preventDefault();
+            const form = event.target; const tripId = Number(form.closest('[data-trip]').dataset.trip);
+            try {
+                if (form.classList.contains('link-form')) {
+                    setTripStatus(tripStatusNode(tripId), 'Agregando link...');
+                    replaceTrip(await api(`/api/viajes/${tripId}/enlaces`, { method:'POST', body: JSON.stringify({ url: form.elements.url.value }) }));
+                    setTripStatus(tripStatusNode(tripId), 'Link agregado.');
+                } else if (form.classList.contains('trip-edit')) {
+                    await api(`/api/viajes/${tripId}`, { method:'PUT', body: tripPayload(form) });
+                    await loadTrips(); setTripStatus(tripStatusNode(tripId), 'Cambios guardados.');
+                }
+            } catch (error) { setTripStatus(tripStatusNode(tripId), error.message, true); }
+        });
+
+        async function saveTripOrder() { await api('/api/viajes/orden', { method:'PUT', body: JSON.stringify({ ids: trips.map(trip => trip.id) }) }); }
+        async function saveMediaOrder(trip) { await api(`/api/viajes/${trip.id}/medios/orden`, { method:'PUT', body: JSON.stringify({ ids: trip.medios.map(medio => medio.id) }) }); }
+        function move(list, index, delta) { const target = index + delta; [list[index], list[target]] = [list[target], list[index]]; }
+
+        tripList.addEventListener('click', async event => {
+            const button = event.target.closest('button[data-action]'); if (!button) return;
+            const article = button.closest('[data-trip]'); const tripId = Number(article.dataset.trip);
+            const tripIndex = trips.findIndex(trip => trip.id === tripId); const trip = trips[tripIndex];
+            const action = button.dataset.action;
+            try {
+                if (action === 'trip-edit' || action === 'trip-cancel') { article.querySelector('.trip-edit').hidden = action === 'trip-cancel'; return; }
+                if (action === 'trip-up' || action === 'trip-down') { move(trips, tripIndex, action === 'trip-up' ? -1 : 1); renderTrips(); await saveTripOrder(); return; }
+                if (action === 'trip-delete') {
+                    if (!confirm(`¿Borrar el viaje "${trip.titulo}" con todas sus fotos y videos? No se puede deshacer.`)) return;
+                    await api(`/api/viajes/${tripId}`, { method:'DELETE' }); trips.splice(tripIndex, 1); renderTrips(); return;
+                }
+                const mediaId = Number(button.dataset.id); const mediaIndex = trip.medios.findIndex(medio => medio.id === mediaId);
+                if (action === 'media-left' || action === 'media-right') { move(trip.medios, mediaIndex, action === 'media-left' ? -1 : 1); renderTrips(); await saveMediaOrder(trip); return; }
+                if (action === 'media-delete') {
+                    if (!confirm('¿Borrar este archivo del viaje?')) return;
+                    await api(`/api/viajes/medios/${mediaId}`, { method:'DELETE' }); trip.medios.splice(mediaIndex, 1); renderTrips();
+                }
+            } catch (error) { await loadTrips().catch(() => {}); setTripStatus(tripStatusNode(tripId), error.message, true); }
+        });
+
+        loadTrips().catch(error => { tripList.innerHTML = `<p class="alert">No se pudieron cargar tus viajes: ${escapeHtml(error.message)}</p>`; });
         loadProfile().catch(error => { pageError.hidden = false; pageError.textContent = `No se pudo cargar el panel: ${error.message}`; });
     </script>
 </body>

@@ -31,6 +31,14 @@ public class TaxistasController : ControllerBase
         return perfil is null ? NotFound() : Ok(perfil);
     }
 
+    /// <summary>Viajes públicos del taxista, para la sección "Viajes" de la tarjeta.</summary>
+    [HttpGet("{publicId:guid}/viajes")]
+    public async Task<IActionResult> GetViajes(Guid publicId, [FromServices] IViajeRepository viajes)
+    {
+        var lista = await viajes.ListarPublicoAsync(publicId);
+        return lista is null ? NotFound() : Ok(lista);
+    }
+
     [HttpPost]
     public async Task<IActionResult> GuardarPerfil([FromForm] ActualizarTaxistaRequest modeloActual, IFormFile? ArchivoFoto) 
     {

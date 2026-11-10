@@ -16,7 +16,6 @@
         { icon: 'bi-clock', es: 'Servicio 24 horas', en: '24/7 service', pt: 'Serviço 24 horas', alias: ['24 horas', '24hs', '24 hs'] },
         { icon: 'bi-suitcase2', es: 'Equipaje grande', en: 'Large luggage', pt: 'Bagagem grande', alias: ['baul grande', 'valijas'] },
         { icon: 'bi-snow', es: 'Aire acondicionado', en: 'Air conditioning', pt: 'Ar-condicionado', alias: ['aire'] },
-        { icon: 'bi-person-arms-up', es: 'Silla para niños', en: 'Child seat available', pt: 'Cadeirinha infantil', alias: ['silla de bebe', 'butaca para niños'] },
         { icon: 'bi-heart', es: 'Acepta mascotas', en: 'Pets welcome', pt: 'Aceita animais de estimação', alias: ['mascotas', 'pet friendly'] },
         { icon: 'bi-credit-card', es: 'Pago con tarjeta', en: 'Card payment accepted', pt: 'Aceita cartão', alias: ['tarjeta', 'tarjeta de credito', 'tarjeta de debito'] },
         { icon: 'bi-qr-code-scan', es: 'Pago con Mercado Pago o QR', en: 'Mercado Pago / QR payment', pt: 'Pagamento com Mercado Pago ou QR', alias: ['mercado pago', 'pago con qr', 'qr'] },
@@ -83,5 +82,48 @@
         return valor;
     }
 
-    window.TaxiYa = Object.freeze({ SERVICIOS, normalizarTexto, buscarServicio, separarServicios, formatearTelefono });
+    // ---------- Fotos y videos de los viajes ----------
+    // Cloudinary transforma al vuelo según la URL: se inserta la transformación después de "/upload/".
+    function transformarCloudinary(url, transformacion, extension) {
+        const valor = String(url ?? '');
+        const marca = valor.indexOf('/upload/');
+        if (marca < 0) return valor;
+        let resultado = valor.slice(0, marca + 8) + transformacion + '/' + valor.slice(marca + 8);
+        if (extension) resultado = resultado.replace(/\.[a-z0-9]+$/i, '.' + extension);
+        return resultado;
+    }
+
+    function idYouTube(url) {
+        const coincidencia = /[?&]v=([A-Za-z0-9_-]{11})/.exec(String(url ?? ''));
+        return coincidencia ? coincidencia[1] : null;
+    }
+
+    /** Miniatura recortada para grillas. Devuelve '' si el medio no tiene imagen (links de Instagram, etc.). */
+    function miniaturaMedio(medio, ancho = 600, alto = 450) {
+        if (medio.tipo === 'imagen') return transformarCloudinary(medio.url, `c_fill,w_${ancho},h_${alto},f_auto,q_auto`, 'jpg');
+        if (medio.tipo === 'video') return transformarCloudinary(medio.url, `so_0,c_fill,w_${ancho},h_${alto},q_auto`, 'jpg');
+        if (medio.tipo === 'youtube') { const id = idYouTube(medio.url); return id ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg` : ''; }
+        return '';
+    }
+
+    /** Foto en tamaño de pantalla, en el formato más liviano que acepte el navegador (convierte HEIC). */
+    function urlImagenGrande(url) { return transformarCloudinary(url, 'c_limit,w_1600,h_1600,f_auto,q_auto', 'jpg'); }
+
+    /** Video comprimido en MP4, compatible con iPhone y Android aunque se haya subido en .mov. */
+    function urlVideo(url) { return transformarCloudinary(url, 'c_limit,w_1280,h_1280,q_auto,vc_auto', 'mp4'); }
+
+    function urlEmbedYouTube(url) { const id = idYouTube(url); return id ? `https://www.youtube-nocookie.com/embed/${id}?rel=0` : ''; }
+
+    /** Nombre del sitio de un link ("Instagram", "TikTok", ...). */
+    function sitioEnlace(url) {
+        try {
+            const host = new URL(url).hostname.replace(/^(www|m|vm|web)\./, '');
+            return { 'instagram.com': 'Instagram', 'tiktok.com': 'TikTok', 'facebook.com': 'Facebook', 'fb.watch': 'Facebook', 'vimeo.com': 'Vimeo', 'youtube.com': 'YouTube' }[host] || host;
+        } catch { return ''; }
+    }
+
+    window.TaxiYa = Object.freeze({
+        SERVICIOS, normalizarTexto, buscarServicio, separarServicios, formatearTelefono,
+        miniaturaMedio, urlImagenGrande, urlVideo, urlEmbedYouTube, idYouTube, sitioEnlace
+    });
 })();

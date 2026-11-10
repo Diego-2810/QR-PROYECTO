@@ -48,6 +48,30 @@ CREATE TABLE IF NOT EXISTS DataProtectionKeys (
     FechaCreacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS Viajes (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    TaxistaId INT NOT NULL,
+    Titulo VARCHAR(120) NOT NULL,
+    Descripcion VARCHAR(1000) NOT NULL DEFAULT '',
+    Fecha DATE NULL,
+    Orden INT NOT NULL DEFAULT 0,
+    FechaCreacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT FK_Viajes_Taxistas FOREIGN KEY (TaxistaId) REFERENCES Taxistas (Id) ON DELETE CASCADE,
+    INDEX IX_Viajes_Taxista_Orden (TaxistaId, Orden)
+);
+
+CREATE TABLE IF NOT EXISTS ViajeMedios (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    ViajeId INT NOT NULL,
+    Tipo VARCHAR(10) NOT NULL,
+    Url VARCHAR(2048) NOT NULL,
+    CloudinaryPublicId VARCHAR(255) NULL,
+    Orden INT NOT NULL DEFAULT 0,
+    FechaCreacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT FK_ViajeMedios_Viajes FOREIGN KEY (ViajeId) REFERENCES Viajes (Id) ON DELETE CASCADE,
+    INDEX IX_ViajeMedios_Viaje_Orden (ViajeId, Orden)
+);
+
 INSERT IGNORE INTO
     Languages (Code, Name)
 VALUES ('es', 'Español'),
