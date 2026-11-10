@@ -96,8 +96,7 @@
         .location-panel .button + .button { margin-top:10px; }
         .mini-map { height:220px; margin:0 0 12px; overflow:hidden; border:1px solid var(--line); border-radius:7px; background:var(--panel); }
         .mini-map[hidden] { display:none; }
-        :root[data-theme="dark"] .mini-map .leaflet-tile-pane { filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9); }
-        @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .mini-map .leaflet-tile-pane { filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9); } }
+        .mini-map iframe { display:block; width:100%; height:100%; border:0; }
         footer { display:flex; flex-wrap:wrap; justify-content:space-between; gap:10px; padding:19px 0 26px; border-top:1px solid var(--line); color:var(--muted); font-size:.85rem; }
         footer a { color:var(--muted); font-weight:700; text-decoration:none; }
         footer a:hover { color:var(--ink); }
@@ -185,7 +184,6 @@
                 locationShow:'Ver mi ubicación', locationSend:'Enviar mi ubicación por WhatsApp', locationLoading:'Buscando tu ubicación...',
                 locationDenied:'No diste permiso para usar tu ubicación. Podés activarlo en la configuración del navegador.',
                 locationError:'No se pudo obtener tu ubicación. Probá de nuevo.', locationUnsupported:'Tu navegador no permite compartir la ubicación.',
-                mapError:'No se pudo cargar el mapa, pero igual podés enviar tu ubicación.',
                 waGreeting:'Hola {name}, te escribo desde tu tarjeta de Taxi Ya.', waLocation:'Hola {name}, te escribo desde tu tarjeta de Taxi Ya. Estoy acá: {url}',
                 notFound:'No se encontró esta tarjeta.', loadError:'No se pudo cargar el perfil.', noId:'No se encontró el identificador de esta tarjeta.',
                 themeDark:'Activar modo oscuro', themeLight:'Activar modo claro',
@@ -203,7 +201,6 @@
                 locationShow:'Show my location', locationSend:'Send my location on WhatsApp', locationLoading:'Finding your location...',
                 locationDenied:'Location permission was denied. You can enable it in your browser settings.',
                 locationError:'Could not get your location. Please try again.', locationUnsupported:'Your browser does not support location sharing.',
-                mapError:'The map could not be loaded, but you can still send your location.',
                 waGreeting:'Hi {name}, I got your contact from your Taxi Ya card.', waLocation:'Hi {name}, I got your contact from your Taxi Ya card. I am here: {url}',
                 notFound:'This card was not found.', loadError:'The profile could not be loaded.', noId:'This card has no valid identifier.',
                 themeDark:'Switch to dark mode', themeLight:'Switch to light mode',
@@ -221,7 +218,6 @@
                 locationShow:'Ver minha localização', locationSend:'Enviar minha localização pelo WhatsApp', locationLoading:'Buscando sua localização...',
                 locationDenied:'Você não permitiu o uso da localização. Pode ativar nas configurações do navegador.',
                 locationError:'Não foi possível obter sua localização. Tente novamente.', locationUnsupported:'Seu navegador não permite compartilhar a localização.',
-                mapError:'Não foi possível carregar o mapa, mas você ainda pode enviar sua localização.',
                 waGreeting:'Olá {name}, peguei seu contato no seu cartão do Taxi Ya.', waLocation:'Olá {name}, peguei seu contato no seu cartão do Taxi Ya. Estou aqui: {url}',
                 notFound:'Este cartão não foi encontrado.', loadError:'Não foi possível carregar o perfil.', noId:'Este cartão não tem um identificador válido.',
                 themeDark:'Ativar modo escuro', themeLight:'Ativar modo claro',
@@ -258,7 +254,6 @@
         let currentProfile = null;
         let currentError = null;   // clave i18n del último error de carga
         let userLocation = null;   // { lat, lng, accuracy }
-        let map = null;
 
         // ---------- Tema claro / oscuro ----------
         const darkQuery = window.matchMedia('(prefers-color-scheme: dark)');
@@ -312,7 +307,6 @@
 
         // ---------- Tarjeta ----------
         function render(profile) {
-            if (map) { map.remove(); map = null; }
             const name = profile.nombreCompleto || t('driver');
             const phone = profile.telefono || '';
             const phoneDigits = phone.replace(/\D/g, '');
@@ -366,22 +360,11 @@
         }
 
         // ---------- Ubicación del pasajero y mini mapa ----------
-        // Leaflet se descarga recién cuando el pasajero pide ver su ubicación, para que la tarjeta cargue rápido.
-        let leafletPromise = null;
-        function loadLeaflet() {
-            if (window.L) return Promise.resolve(window.L);
-            leafletPromise ??= new Promise((resolve, reject) => {
-                const css = document.createElement('link');
-                css.rel = 'stylesheet';
-                css.href = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
-                document.head.appendChild(css);
-                const script = document.createElement('script');
-                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
-                script.onload = () => resolve(window.L);
-                script.onerror = () => { leafletPromise = null; reject(new Error('leaflet')); };
-                document.head.appendChild(script);
-            });
-            return leafletPromise;
+        // Mapa de Google Maps embebido (sin clave). Para pasar a la Maps Embed API oficial más adelante,
+        // solo cambia esta URL: https://www.google.com/maps/embed/v1/place?key=CLAVE&q=lat,lng
+        function googleMapEmbedUrl(loc) {
+            const point = `${loc.lat.toFixed(6)},${loc.lng.toFixed(6)}`;
+            return `https://maps.google.com/maps?q=${point}&z=16&hl=${lang}&output=embed`;
         }
         function requestLocation(phoneDigits, name) {
             if (!('geolocation' in navigator)) { setStatus('location-status', t('locationUnsupported'), true); return; }
@@ -393,7 +376,7 @@
                 setStatus('location-status', error.code === error.PERMISSION_DENIED ? t('locationDenied') : t('locationError'), true);
             }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 });
         }
-        async function showLocation(phoneDigits, name) {
+        function showLocation(phoneDigits, name) {
             const sendLink = document.getElementById('send-location');
             const showButton = document.getElementById('show-location');
             if (!sendLink || !userLocation) return;
@@ -401,23 +384,16 @@
             sendLink.hidden = false;
             showButton.innerHTML = `<i class="bi bi-arrow-clockwise"></i>${escapeHtml(t('locationShow'))}`;
             setStatus('location-status', '');
-            try {
-                const L = await loadLeaflet();
-                const mapNode = document.getElementById('mini-map');
-                if (!mapNode) return;
-                mapNode.hidden = false;
-                if (map) map.remove();
-                const point = [userLocation.lat, userLocation.lng];
-                map = L.map(mapNode, { zoomControl: false, attributionControl: true }).setView(point, 16);
-                L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    maxZoom: 19,
-                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>'
-                }).addTo(map);
-                if (userLocation.accuracy) L.circle(point, { radius: Math.min(userLocation.accuracy, 500), color: '#2f7a58', weight: 1, fillOpacity: .12 }).addTo(map);
-                L.circleMarker(point, { radius: 8, color: '#ffffff', weight: 3, fillColor: '#2f7a58', fillOpacity: 1 }).addTo(map);
-            } catch {
-                setStatus('location-status', t('mapError'), true);
-            }
+            const mapNode = document.getElementById('mini-map');
+            if (!mapNode) return;
+            const iframe = document.createElement('iframe');
+            iframe.src = googleMapEmbedUrl(userLocation);
+            iframe.title = t('location');
+            iframe.loading = 'lazy';
+            iframe.referrerPolicy = 'no-referrer-when-downgrade';
+            iframe.allowFullscreen = true;
+            mapNode.replaceChildren(iframe);
+            mapNode.hidden = false;
         }
 
         // ---------- Carga ----------
