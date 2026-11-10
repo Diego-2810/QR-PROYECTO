@@ -42,13 +42,7 @@ public class AdministracionController : ControllerBase
             return Unauthorized();
         }
 
-        request.NombreCompleto = request.NombreCompleto.Trim();
-        request.Telefono = TelefonoInternacional.Normalizar(request.Telefono)!;
-        request.FotoUrl = request.FotoUrl?.Trim();
-        request.Vehiculo = request.Vehiculo?.Trim() ?? string.Empty;
-        request.Patente = request.Patente?.Trim() ?? string.Empty;
-        request.DatosPago = request.DatosPago?.Trim() ?? string.Empty;
-        request.Servicios = request.Servicios.Trim();
+        request.Normalizar();
 
         var actualizado = await _taxistaRepository.ActualizarPropioAsync(googleId, request);
         return actualizado ? NoContent() : NotFound();

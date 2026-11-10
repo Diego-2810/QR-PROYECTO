@@ -105,7 +105,13 @@ Abrir `https://localhost:7215/`. También está disponible `http://localhost:526
 
 Usar una instancia MariaDB/MySQL gestionada o un VPS accesible desde Render. Habilitar TLS si el proveedor lo ofrece, limitar conexiones entrantes y ejecutar una vez desde una conexión administrativa `Database/init-nube.sql` (proveedores que ya dan una base creada, como Aiven) o `Database/init.sql` (servidor propio). Planificar copias de seguridad y aplicar cambios futuros del esquema de forma controlada.
 
-En una base que ya existía, ejecutar también `Database/migraciones/002_data_protection_keys.sql` antes de iniciar esta versión: crea la tabla donde se guardan las claves de la cookie de sesión, para que los taxistas no pierdan la sesión en cada reinicio.
+En una base que ya existía, ejecutar también, en orden y antes de iniciar esta versión:
+
+- `Database/migraciones/002_data_protection_keys.sql`: tabla donde se guardan las claves de la cookie de sesión, para que los taxistas no pierdan la sesión en cada reinicio.
+- `Database/migraciones/003_viajes.sql`: tablas `Viajes` y `ViajeMedios` de la sección "Viajes".
+- `Database/migraciones/004_taxistas_nombre_vehiculo.sql`: columnas `Nombre`, `Apellido`, `Marca` y `Modelo`, completadas con los datos que ya había.
+
+Si falta alguna, la aplicación no arranca y el log indica qué script ejecutar.
 
 Para bases de datos ya existentes (migración a `PublicId` aleatorio sin usar `UUID()` del motor), aplicar los pasos en este orden:
 

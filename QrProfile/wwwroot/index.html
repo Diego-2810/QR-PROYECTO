@@ -328,7 +328,9 @@
             const payment = (profile.datosPago || '').trim();
             const paymentUrl = safeWebUrl(payment);
             const initials = name.trim().split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase();
-            const greeting = t('waGreeting', { name: firstName(name) });
+            // El saludo usa el campo Nombre tal cual (puede ser un nombre comercial como "Diego Ya").
+            const greetName = String(profile.nombre || '').trim() || firstName(name);
+            const greeting = t('waGreeting', { name: greetName });
             perfilNode.innerHTML = `
                 <section class="profile" aria-labelledby="profile-name">
                     <div class="profile-head"><div class="profile-photo">${photoUrl ? `<img src="${escapeHtml(photoUrl)}" alt="${escapeHtml(t('photoAlt', { name }))}">` : `<span aria-label="${escapeHtml(t('initials'))}">${escapeHtml(initials)}</span>`}</div>
@@ -343,7 +345,7 @@
                     ${payment ? `<section class="payment-panel"><p class="section-label">${escapeHtml(t('payment'))}</p>${paymentUrl ? `<a class="button button-primary" href="${escapeHtml(paymentUrl)}" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right"></i>${escapeHtml(t('openPayment'))}</a>` : `<p class="payment-value" id="payment-value">${escapeHtml(payment)}</p><button class="button button-secondary" id="copy-payment" type="button"><i class="bi bi-copy"></i>${escapeHtml(t('copy'))}</button>`}<p id="payment-status" class="profile-status" role="status"></p></section>` : ''}
                 </aside>`;
             document.getElementById('save-contact')?.addEventListener('click', () => {
-                const vcard = ['BEGIN:VCARD', 'VERSION:3.0', `FN:${escapeVCard(name)}`, `TEL;TYPE=CELL:${escapeVCard(phone)}`, 'NOTE:Taxi Ya', 'END:VCARD'].join('\r\n');
+                const vcard = ['BEGIN:VCARD', 'VERSION:3.0', `N:${escapeVCard(profile.apellido || '')};${escapeVCard(profile.nombre || name)};;;`, `FN:${escapeVCard(name)}`, `TEL;TYPE=CELL:${escapeVCard(phone)}`, 'NOTE:Taxi Ya', 'END:VCARD'].join('\r\n');
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(new Blob([vcard], { type:'text/vcard;charset=utf-8' }));
                 link.download = `${name.trim().replace(/[^\p{L}\p{N}-]+/gu, '-') || 'taxista'}.vcf`;
@@ -359,8 +361,8 @@
                     setStatus('payment-status', t('copyFail'), true);
                 }
             });
-            document.getElementById('show-location')?.addEventListener('click', () => requestLocation(phoneDigits, name));
-            if (userLocation) showLocation(phoneDigits, name);
+            document.getElementById('show-location')?.addEventListener('click', () => requestLocation(phoneDigits, greetName));
+            if (userLocation) showLocation(phoneDigits, greetName);
         }
 
         // ---------- Ubicación del pasajero y mini mapa ----------
@@ -395,7 +397,7 @@
             const sendLink = document.getElementById('send-location');
             const showButton = document.getElementById('show-location');
             if (!sendLink || !userLocation) return;
-            sendLink.href = whatsappUrl(phoneDigits, t('waLocation', { name: firstName(name), url: mapsUrl(userLocation) }));
+            sendLink.href = whatsappUrl(phoneDigits, t('waLocation', { name, url: mapsUrl(userLocation) }));
             sendLink.hidden = false;
             showButton.innerHTML = `<i class="bi bi-arrow-clockwise"></i>${escapeHtml(t('locationShow'))}`;
             setStatus('location-status', '');
