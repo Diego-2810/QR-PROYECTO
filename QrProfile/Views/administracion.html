@@ -233,6 +233,16 @@
         document.getElementById('ArchivoFoto').addEventListener('change', event => {
             const file = event.target.files[0]; const preview = document.getElementById('photo-preview');
             if (!file) { updatePhotoPreview(); return; }
+            const status = document.getElementById('save-status');
+            if (file.size > 10 * 1024 * 1024) {
+                event.target.value = ''; updatePhotoPreview();
+                status.textContent = 'La foto supera los 10 MB. Elegí una más liviana.'; return;
+            }
+            if (!file.type.startsWith('image/') && !/\.(heic|heif)$/i.test(file.name)) {
+                event.target.value = ''; updatePhotoPreview();
+                status.textContent = 'El archivo elegido no es una imagen.'; return;
+            }
+            status.textContent = '';
             if (preview.src.startsWith('blob:')) URL.revokeObjectURL(preview.src);
             preview.src = URL.createObjectURL(file); preview.hidden = false;
         });

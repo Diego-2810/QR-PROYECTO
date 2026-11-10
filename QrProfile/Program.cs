@@ -82,8 +82,6 @@ builder.Services.AddHealthChecks().AddAsyncCheck("base-de-datos", async cancella
     }
 });
 
-builder.Services.AddScoped<IProfileRepository, ProfileRepository>();
-builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<ITaxistaRepository, TaxistaRepository>();
 builder.Services.AddScoped<IViajeRepository, ViajeRepository>();
@@ -165,15 +163,8 @@ app.MapGet("/", (HttpContext context) => PaginaHtml(context, homePagePath));
 app.MapGet("/perfil/{publicId:guid}", (HttpContext context) => PaginaHtml(context, publicPagePath));
 app.MapGet("/admin", (HttpContext context) => PaginaHtml(context, adminPagePath))
     .RequireAuthorization();
-app.MapGet("/panel", (HttpContext context) => PaginaHtml(context, adminPagePath))
-    .RequireAuthorization();
-
-// Endpoint de la API
-app.MapGet("/api/profile/{lang}", async (string lang, IProfileService profileService) =>
-{
-    var profile = await profileService.GetProfileByLanguageAsync(lang);
-    return profile is not null ? Results.Ok(profile) : Results.NotFound("Profile not found for this language.");
-});
+// Dirección vieja del panel: se mantiene como redirección por si alguien la guardó.
+app.MapGet("/panel", () => Results.Redirect("/admin"));
 
 app.MapHealthChecks("/health");
 app.MapControllers();
