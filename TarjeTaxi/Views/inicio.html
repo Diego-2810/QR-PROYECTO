@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f4c52d">
+    <title>TarjeTaxi | Tarjetas digitales para taxistas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <style>
+        :root { color-scheme:light; --paper:#f5f2e8; --ink:#191d1f; --muted:#626b68; --line:#d5d4cb; --yellow:#f4c52d; --yellow-deep:#b88700; --teal:#1f7775; --orange:#d66f4c; font-family:'DM Sans',sans-serif; }
+        * { box-sizing:border-box; }
+        body { margin:0; min-height:100vh; color:var(--ink); background:var(--paper); }
+        a { color:inherit; }
+        .shell { width:min(1180px,calc(100% - 48px)); margin:auto; }
+        header { display:flex; min-height:86px; align-items:center; justify-content:space-between; border-bottom:1px solid var(--line); }
+        .brand { display:flex; align-items:center; gap:11px; font:800 1.2rem Manrope,sans-serif; text-decoration:none; }
+        .brand-mark { display:grid; width:42px; height:42px; place-items:center; border-radius:12px 12px 12px 3px; background:var(--yellow); color:var(--ink); font-size:1.25rem; }
+        .driver-link { display:inline-flex; min-height:44px; align-items:center; gap:9px; padding:0 16px; border:1px solid #aeb5a8; border-radius:5px; font-size:.92rem; font-weight:700; text-decoration:none; transition:background .16s ease,color .16s ease; }
+        .driver-link:hover { background:var(--ink); color:white; }
+        main { display:grid; grid-template-columns:minmax(0,1fr) minmax(360px,.9fr); gap:clamp(38px,7vw,100px); align-items:center; padding:62px 0 75px; }
+        .intro { animation:arrive .5s ease-out both; }
+        .eyebrow { display:flex; align-items:center; gap:9px; margin:0 0 21px; color:var(--teal); font-size:.78rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+        .eyebrow::before { width:24px; height:3px; background:var(--yellow-deep); content:''; }
+        h1 { max-width:620px; margin:0; font:800 clamp(3.5rem,8vw,6.7rem)/.93 Manrope,sans-serif; letter-spacing:0; overflow-wrap:anywhere; }
+        h1 span { color:var(--yellow-deep); }
+        .lead { max-width:510px; margin:24px 0 30px; color:#505a52; font-size:1.12rem; line-height:1.65; }
+        .benefit-list { display:grid; gap:13px; margin:27px 0 25px; padding:0; list-style:none; }
+        .benefit-list li { display:flex; align-items:center; gap:12px; color:#465052; font-weight:600; }
+        .benefit-list i { display:grid; width:30px; height:30px; flex:0 0 30px; place-items:center; border-radius:50%; background:#eee2b8; color:var(--teal); }
+        .home-cta { display:inline-flex; min-height:52px; align-items:center; gap:10px; padding:0 19px; border-radius:5px; background:var(--ink); color:white; font-weight:700; text-decoration:none; transition:background .16s ease,transform .16s ease; }
+        .home-cta:hover { transform:translateY(-1px); background:var(--teal); }
+        .passenger-note { margin:15px 0 0; color:var(--muted); font-size:.9rem; }
+        .visual { position:relative; aspect-ratio:14/11; overflow:hidden; border-radius:8px; background:#b8c4b2; animation:arrive .65s .08s ease-out both; }
+        .visual img { position:absolute; width:100%; height:100%; object-fit:cover; object-position:center; }
+        .visual::after { position:absolute; inset:0; background:linear-gradient(180deg,#18251d00 42%,#18251dcc 100%); content:''; }
+        .visual-label { position:absolute; z-index:1; right:25px; bottom:25px; left:25px; display:flex; align-items:end; justify-content:space-between; gap:18px; color:#fff; }
+        .visual-label strong { display:block; font:700 1.4rem Manrope,sans-serif; }
+        .visual-label span { color:#e5e9df; font-size:.9rem; }
+        .visual-label i { display:grid; width:47px; height:47px; flex:0 0 auto; place-items:center; border-radius:50%; background:var(--yellow); color:var(--ink); font-size:1.25rem; }
+        footer { display:flex; justify-content:space-between; gap:16px; padding:20px 0 24px; border-top:1px solid var(--line); color:var(--muted); font-size:.84rem; }
+        footer a { font-weight:700; text-decoration:none; }
+        @keyframes arrive { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+        @media(max-width:800px) { .shell { width:min(100% - 30px,620px); } header { min-height:64px; } main { grid-template-columns:1fr; gap:24px; padding:22px 0 32px; } h1 { max-width:520px; font-size:clamp(3rem,9vw,4rem); } .lead { margin:14px 0 16px; font-size:1.04rem; line-height:1.5; } }
+        @media(max-width:440px) { header { min-height:64px; } main { padding:23px 0 30px; } .eyebrow { margin-bottom:14px; } h1 { font-size:clamp(2.8rem,12vw,3.5rem); } .lead { margin:13px 0 17px; } .driver-link { min-height:40px; padding:0 11px; font-size:.82rem; } .brand { font-size:1.05rem; } footer { flex-direction:column; } }
+        @media(prefers-reduced-motion:reduce) { *,*::before,*::after { animation-duration:.01ms!important; transition-duration:.01ms!important; } }
+    </style>
+</head>
+<body>
+    <div class="shell">
+        <header>
+            <a class="brand" href="/" aria-label="TarjeTaxi, inicio"><span class="brand-mark"><i class="bi bi-taxi-front-fill"></i></span><span>TarjeTaxi</span></a>
+            <a class="driver-link" href="/api/auth/login-google"><i class="bi bi-person-lock"></i>Acceso / Registro de Taxistas</a>
+        </header>
+        <main>
+            <section class="intro" aria-labelledby="page-title">
+                <p class="eyebrow">Herramienta digital para taxistas</p>
+                <h1 id="page-title">Tu nombre.<br><span>Tu tarjeta.</span></h1>
+                <p class="lead">TarjeTaxi reúne tus datos profesionales en un perfil público sencillo de compartir. Creá tu tarjeta digital y generá un QR personal para que tus pasajeros siempre tengan tu información a mano.</p>
+                <ul class="benefit-list">
+                    <li><i class="bi bi-person-vcard"></i>Tu información de contacto, vehículo y servicios</li>
+                    <li><i class="bi bi-qr-code"></i>Un código QR único para imprimir o compartir</li>
+                    <li><i class="bi bi-whatsapp"></i>WhatsApp directo y datos de pago en tu tarjeta</li>
+                </ul>
+                <a class="home-cta" href="/api/auth/login-google"><i class="bi bi-google"></i>Acceso / Registro de Taxistas</a>
+                <p class="passenger-note">Los pasajeros consultan tu tarjeta escaneando el QR, sin crear una cuenta.</p>
+            </section>
+            <div class="visual" aria-label="Tarjeta digital para taxistas">
+                <img src="/images/taxi-buenos-aires.png" alt="Ilustración de un taxi porteño negro y amarillo en una avenida de Buenos Aires" fetchpriority="high">
+                <div class="visual-label"><div><strong>Tu información, siempre a mano.</strong><span>Una tarjeta digital para compartir</span></div><i class="bi bi-qr-code"></i></div>
+            </div>
+        </main>
+        <footer><span>TarjeTaxi <span id="year"></span></span><a href="/api/auth/login-google">Acceso / Registro de Taxistas <i class="bi bi-arrow-up-right"></i></a></footer>
+    </div>
+    <script>
+        document.getElementById('year').textContent = new Date().getFullYear();
+    </script>
+</body>
+</html>

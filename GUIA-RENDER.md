@@ -17,8 +17,8 @@ en el repositorio: todas se cargan como variables de entorno en Render.
 
 ## 1. Subir el código a GitHub
 
-1. Subir la rama de trabajo: `git push origin mejoras-taxiya`.
-2. En GitHub, abrir un Pull Request de `mejoras-taxiya` hacia `main` y unirlo.
+1. Subir la rama de trabajo a GitHub.
+2. En GitHub, abrir un Pull Request de la rama de trabajo hacia `main` y unirlo.
 3. Render publica siempre la rama `main` (está configurado en `render.yaml`).
 
 ## 2. Base de datos (Aiven)

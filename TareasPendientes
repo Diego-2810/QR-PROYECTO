@@ -1,0 +1,23 @@
+Lista de tareas futuras
+
+Marca y presencia
+
+ Verificar que TarjeTaxi esté disponible como marca en Argentina y revisar la disponibilidad del dominio y los nombres en redes.
+ Definir quién será titular del dominio y dónde se administrarán sus DNS.
+ Actualizar el nombre, logo y enlaces en Google OAuth, redes sociales y demás perfiles públicos.
+Dominio y hosting
+
+ Decidir si Render seguirá alojando producción con dominio propio o si se migrará a otro proveedor. Render puede quedar como entorno de pruebas.
+ Configurar el dominio, DNS y HTTPS en el hosting elegido.
+ Añadir el dominio a Google OAuth y conservar el callback de Render para pruebas si se seguirá usando.
+ Actualizar el nombre del servicio de Render solo después de confirmar el servicio y su URL actual, para no crear otro servicio por accidente.
+Enlaces y códigos QR
+
+ Configurar una URL pública canónica para que los QR nuevos no dependan del dominio desde el que se abrió el panel. Hoy se construyen usando window.location.origin en administracion.html:179.
+ Probar que los QR abran el perfil desde el dominio nuevo.
+ Decidir cómo conservar los QR ya distribuidos: mantener una redirección desde la dirección anterior o generar y repartir QR nuevos.
+Cierre y mantenimiento
+
+ Confirmar que las nuevas cargas de Cloudinary aparezcan bajo la carpeta TarjeTaxi; las imágenes existentes no necesitan moverse.
+ Probar inicio de sesión, edición de perfil, subidas, enlaces públicos y QR en producción antes de anunciar el dominio.
+ Añadir pruebas automatizadas: el repositorio actualmente no tiene un proyecto de tests, según el README.

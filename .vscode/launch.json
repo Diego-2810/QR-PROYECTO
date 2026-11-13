@@ -10,9 +10,9 @@
             "request": "launch",
             "preLaunchTask": "build",
             // Si ha cambiado las plataformas de destino, asegúrese de actualizar la ruta de acceso del programa.
-            "program": "${workspaceFolder}/QrProfile/bin/Debug/net8.0/QrProfile.dll",
+            "program": "${workspaceFolder}/TarjeTaxi/bin/Debug/net10.0/TarjeTaxi.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/QrProfile",
+            "cwd": "${workspaceFolder}/TarjeTaxi",
             "stopAtEntry": false,
             // Habilite el inicio de un explorador web cuando se inicie ASP.NET Core. Para obtener más información: https://aka.ms/VSCode-CS-LaunchJson-WebBrowser
             "serverReadyAction": {

@@ -4,13 +4,13 @@ TarjeTaxi permite a taxistas independientes de Buenos Aires crear una tarjeta di
 
 ## Requisitos
 
-- .NET SDK 10.0, requerido por `QrProfile/QrProfile.csproj` (`net10.0`).
+- .NET SDK 10.0, requerido por `TarjeTaxi/TarjeTaxi.csproj` (`net10.0`).
 - MariaDB compatible con `Database/init.sql` o un servidor MySQL compatible, accesible desde la aplicación.
 - Proyecto OAuth 2.0 de tipo aplicación web en Google Cloud, con pantalla de consentimiento configurada.
 - Cuenta en Cloudinary para almacenar las fotos de perfil de los taxistas.
 - Git y una terminal para la configuración local.
 
-No hay un proyecto de pruebas automatizadas en el repositorio. Antes de publicar cambios, ejecutar al menos `dotnet build QrProfile/QrProfile.csproj -c Release` y probar OAuth y lectura/escritura contra una base de staging.
+No hay un proyecto de pruebas automatizadas en el repositorio. Antes de publicar cambios, ejecutar al menos `dotnet build TarjeTaxi/TarjeTaxi.csproj -c Release` y probar OAuth y lectura/escritura contra una base de staging.
 
 ## Arquitectura
 
@@ -19,8 +19,8 @@ No hay un proyecto de pruebas automatizadas en el repositorio. Antes de publicar
 - **Esquema:** script SQL reejecutable en `Database/init.sql`; no se usa Entity Framework Core, Pomelo ni `dotnet ef`.
 - **Autenticación:** Google OAuth 2.0 y cookie de autenticación ASP.NET Core.
 - **Imágenes y videos:** Cloudinary (`CloudinaryDotNet`). La foto de perfil pasa por el servidor (máx. 10 MB, se convierte a JPG 500x500 y reemplaza a la anterior). Las fotos y videos de "Viajes" se suben directo del navegador con una firma del servidor, que después verifica cada archivo.
-- **Idiomas y tema:** la tarjeta pública traduce sus textos (ES/EN/PT) y cambia entre modo claro y oscuro en el navegador; los servicios del catálogo se traducen con `wwwroot/js/taxiya-comun.js`.
-- **Interfaz:** HTML, CSS y JavaScript en `QrProfile/Views` y `QrProfile/wwwroot`.
+- **Idiomas y tema:** la tarjeta pública traduce sus textos (ES/EN/PT) y cambia entre modo claro y oscuro en el navegador; los servicios del catálogo se traducen con `wwwroot/js/tarjetaxi-comun.js`.
+- **Interfaz:** HTML, CSS y JavaScript en `TarjeTaxi/Views` y `TarjeTaxi/wwwroot`.
 - **QR:** generado en el navegador mediante QRCode.js; el contenido dirige a `/perfil/{publicId}` (GUID aleatorio).
 
 Los perfiles, usuarios y tarjetas se consultan mediante repositorios Dapper. La aplicación no crea la base ni aplica migraciones al arrancar: un operador debe aplicar `Database/init.sql` (y las migraciones en `Database/migraciones/` si la base ya existía) antes del primer inicio de sesión.
@@ -58,15 +58,15 @@ cd QR-PROYECTO
 Crear un usuario de base de datos de desarrollo y ejecutar el esquema. El usuario necesita permisos para crear la base/tablas si todavía no existen.
 
 ```bash
-mariadb --host 127.0.0.1 --user taxiya --password < Database/init.sql
+mariadb --host 127.0.0.1 --user tarjetaxi --password < Database/init.sql
 ```
 
-El comando solicita la contraseña en forma interactiva; reemplazar `taxiya` por el usuario de base de datos que se haya creado.
+El comando solicita la contraseña en forma interactiva; reemplazar `tarjetaxi` por el usuario de base de datos que se haya creado.
 
 Guardar la cadena completa en User Secrets para no versionar contraseñas:
 
 ```bash
-dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=127.0.0.1;Port=3306;Database=QrProfileDB;User ID=<usuario>;Password=<contraseña>;" --project QrProfile/QrProfile.csproj
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=127.0.0.1;Port=3306;Database=QrProfileDB;User ID=<usuario>;Password=<contraseña>;" --project TarjeTaxi/TarjeTaxi.csproj
 ```
 
 La misma clave puede proporcionarse mediante `ConnectionStrings__DefaultConnection`. El arranque comprueba que la cadena exista y tenga formato MariaDB/MySQL, pero no crea la base ni modifica el esquema.
@@ -83,12 +83,12 @@ https://localhost:7215/signin-google
 Configurar las credenciales localmente. El proyecto incluye `UserSecretsId`, y `WebApplication.CreateBuilder` carga User Secrets automáticamente en Development.
 
 ```bash
-dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=127.0.0.1;Port=3306;Database=QrProfileDB;User ID=taxiya_local;Password=clave-local-ficticia;" --project QrProfile/QrProfile.csproj
-dotnet user-secrets set "Authentication:Google:ClientId" "000000000000-ejemplo.apps.googleusercontent.com" --project QrProfile/QrProfile.csproj
-dotnet user-secrets set "Authentication:Google:ClientSecret" "secreto-google-ficticio" --project QrProfile/QrProfile.csproj
-dotnet user-secrets set "Cloudinary:CloudName" "mi-cloud-ficticio" --project QrProfile/QrProfile.csproj
-dotnet user-secrets set "Cloudinary:ApiKey" "000000000000000" --project QrProfile/QrProfile.csproj
-dotnet user-secrets set "Cloudinary:ApiSecret" "secreto-cloudinary-ficticio" --project QrProfile/QrProfile.csproj
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=127.0.0.1;Port=3306;Database=QrProfileDB;User ID=tarjetaxi_local;Password=clave-local-ficticia;" --project TarjeTaxi/TarjeTaxi.csproj
+dotnet user-secrets set "Authentication:Google:ClientId" "000000000000-ejemplo.apps.googleusercontent.com" --project TarjeTaxi/TarjeTaxi.csproj
+dotnet user-secrets set "Authentication:Google:ClientSecret" "secreto-google-ficticio" --project TarjeTaxi/TarjeTaxi.csproj
+dotnet user-secrets set "Cloudinary:CloudName" "mi-cloud-ficticio" --project TarjeTaxi/TarjeTaxi.csproj
+dotnet user-secrets set "Cloudinary:ApiKey" "000000000000000" --project TarjeTaxi/TarjeTaxi.csproj
+dotnet user-secrets set "Cloudinary:ApiSecret" "secreto-cloudinary-ficticio" --project TarjeTaxi/TarjeTaxi.csproj
 ```
 
 Si la pantalla de consentimiento está en modo de prueba, incluir las cuentas que iniciarán sesión como usuarios de prueba. No reutilizar secretos OAuth que se hayan compartido o comprometido: revocarlos y crear otros nuevos.
@@ -96,7 +96,7 @@ Si la pantalla de consentimiento está en modo de prueba, incluir las cuentas qu
 ### 4. Ejecutar
 
 ```bash
-dotnet run --project QrProfile/QrProfile.csproj --launch-profile https
+dotnet run --project TarjeTaxi/TarjeTaxi.csproj --launch-profile https
 ```
 
 Abrir `https://localhost:7215/`. También está disponible `http://localhost:5264/` con el perfil `http`. El certificado local puede requerir confianza explícita en el sistema operativo. Si se cambia host o puerto, registrar la URI de callback exacta en Google Cloud.
@@ -131,8 +131,8 @@ Para bases de datos ya existentes (migración a `PublicId` aleatorio sin usar `U
 
 Crear un servicio web con raíz del repositorio y configurar:
 
-- **Build Command:** `dotnet publish QrProfile/QrProfile.csproj -c Release -o publish`
-- **Start Command:** `dotnet publish/QrProfile.dll --urls "http://0.0.0.0:${PORT:-10000}"`
+- **Build Command:** `dotnet publish TarjeTaxi/TarjeTaxi.csproj -c Release -o publish`
+- **Start Command:** `dotnet publish/TarjeTaxi.dll --urls "http://0.0.0.0:${PORT:-10000}"`
 - **Environment:** `ASPNETCORE_ENVIRONMENT=Production`
 - **Environment:** `ConnectionStrings__DefaultConnection` con la cadena entregada por el proveedor MariaDB/MySQL.
 - **Environment:** `Authentication__Google__ClientId` con el Client ID OAuth.
@@ -162,11 +162,11 @@ No guardar secretos en `appsettings.json`, `appsettings.Development.json`, `Clav
 
 ## Configuración y variables de entorno
 
-`QrProfile/appsettings.json` deja vacías las claves sensibles. La configuración utiliza los proveedores estándar de .NET (User Secrets en `Development` y variables de entorno en cualquier entorno, representando niveles con `__`):
+`TarjeTaxi/appsettings.json` deja vacías las claves sensibles. La configuración utiliza los proveedores estándar de .NET (User Secrets en `Development` y variables de entorno en cualquier entorno, representando niveles con `__`):
 
 | Variable de entorno | Clave .NET | Ejemplo ficticio |
 | --- | --- | --- |
-| `ConnectionStrings__DefaultConnection` | `ConnectionStrings:DefaultConnection` | `Server=db.ejemplo.internal;Port=3306;Database=QrProfileDB;User ID=taxiya_app;Password=clave-ficticia;` |
+| `ConnectionStrings__DefaultConnection` | `ConnectionStrings:DefaultConnection` | `Server=db.ejemplo.internal;Port=3306;Database=QrProfileDB;User ID=tarjetaxi_app;Password=clave-ficticia;` |
 | `Authentication__Google__ClientId` | `Authentication:Google:ClientId` | `000000000000-ejemplo.apps.googleusercontent.com` |
 | `Authentication__Google__ClientSecret` | `Authentication:Google:ClientSecret` | `secreto-google-ficticio` |
 | `ForwardedHeaders__TrustProxyHeaders` | `ForwardedHeaders:TrustProxyHeaders` | `true` |
