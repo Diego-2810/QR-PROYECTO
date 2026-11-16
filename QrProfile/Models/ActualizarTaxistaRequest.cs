@@ -18,13 +18,16 @@ public class ActualizarTaxistaRequest
     [StringLength(2048)]
     public string? FotoUrl { get; set; }
 
+    [Required(ErrorMessage = "Escribí la marca del auto.")]
     [StringLength(50, ErrorMessage = "La marca puede tener hasta 50 caracteres.")]
     public string? Marca { get; set; }
 
+    [Required(ErrorMessage = "Escribí el modelo del auto.")]
     [StringLength(60, ErrorMessage = "El modelo puede tener hasta 60 caracteres.")]
     public string? Modelo { get; set; }
 
-    [StringLength(30)]
+    [Required(ErrorMessage = "Escribí la patente del auto.")]
+    [StringLength(30, ErrorMessage = "La patente puede tener hasta 30 caracteres.")]
     public string? Patente { get; set; } = string.Empty;
 
     [StringLength(250)]
